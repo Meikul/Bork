@@ -15,11 +15,14 @@
  int autonState = 0;
  int motors[10] = {0,0,0,0,0,0,0,0,0,0};
 
+ TaskHandle drivingTask;
+
  void autonSelect();
  void sensorView();
  void lcdSet(const char *line1, const char *line2);
  void lcdSet(int line, const char *string);
  int linSpeed(int speed);
+ void drivePid();
 
 int linSpeed(int speed){
   bool negative = false;
@@ -127,7 +130,56 @@ int feetToTicks(double feet){
   return (feet / circumference) * 360;
 }
 
+long driveTarget = 0;
+
 void driveDist(double feet){
+  driveTarget = feetToTicks(feet);
+  drivingTask = taskRunLoop(drivePid, 20);
+}
+
+void drivePid(){
+	const double kp = 0.3;
+	const double ki = 0.0;
+	const double kd = 2.0;
+
+	static double integL;
+	static double integR;
+	int encL = encoderGet(rightEnc);
+	int encR = encoderGet(leftEnc);
+	int errorL = driveTarget - encL;
+	int errorR = driveTarget - encR;
+
+	static int prevErrorL;
+	static int prevErrorR;
+	int deltaErrorL = (errorL - prevErrorL);
+	int deltaErrorR = (errorR - prevErrorR);
+
+	if(abs(errorL) < 200){
+		integL += errorL;
+    rectify(integL, -127, 127);
+	}
+	else{
+		integL = 0;
+	}
+
+	if(abs(errorR) < 400){
+		integR += errorR;
+    rectify(integR, -127, 127);
+	}
+	else{
+		integR = 0;
+	}
+
+	int pwrL = (errorL * kp) + (integL * ki) + (deltaErrorL * kd);
+	int pwrR = (errorR * kp) + (integR * ki) + (deltaErrorR * kd);
+	driveSet(pwrL, pwrR);
+	prevErrorL = errorL;
+	prevErrorR = errorR;
+  if(abs(errorR) < 5 && abs(errorL) < 5){
+    semaphoreGive(isDoneDriving);
+    driveSet(0, 0);
+    taskDelete(drivingTask);
+  }
 }
 
 void lcdControl(){
