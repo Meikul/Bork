@@ -125,10 +125,13 @@ void operatorControl();
 // Sensors
 #define frontSwitch 1
 #define backSwitch 2
-#define dre1 3
-#define dre2 4
-#define dle1 5
-#define dle2 6
+#define dre1 7
+#define dre2 8
+#define dle1 3
+#define dle2 4
+
+#define frontLight 1
+#define backLight 2
 
 // End C++ export structure
 #ifdef __cplusplus

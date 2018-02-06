@@ -11,11 +11,15 @@
 
  Encoder rightEnc;
  Encoder leftEnc;
- int sysState = 0;
+ int sysState = 1;
  int autonState = 0;
+ int sensorIndex = 0;
  int motors[10] = {0,0,0,0,0,0,0,0,0,0};
 
  TaskHandle drivingTask;
+ Mutex settingDrive = mutexCreate();
+ Semaphore isDoneDriving = semaphoreCreate();
+ Semaphore isDoneLifting = semaphoreCreate();
 
  void autonSelect();
  void sensorView();
@@ -125,15 +129,49 @@ void driveSet(int left, int right){
   mset(dl5, -left);
 }
 
-int feetToTicks(double feet){
-  const double circumference = 12.566372;
-  return (feet / circumference) * 360;
+int feetToTicksLeft(double feet){
+  const int ticksPerFoot = 290;
+  return (feet * ticksPerFoot);
 }
 
-long driveTarget = 0;
+int degToTicksLeft(int degrees){
+  const double footPerDeg = 0.02617994;
+  double driveDistance = degrees * footPerDeg / 1.41;
+  return feetToTicksLeft(driveDistance);
+}
+
+double ticksToFeetLeft(int ticks){
+  // const double circumference = 12.566372;
+  return (ticks / 290.0);
+}
+
+int feetToTicksRight(double feet){
+  const int ticksPerFoot = 280;
+  return (feet * ticksPerFoot);
+}
+
+int degToTicksRight(int degrees){
+  const double footPerDeg = 0.02617994;
+  double driveDistance = degrees * footPerDeg / 1.41;
+  return feetToTicksRight(driveDistance);
+}
+
+double ticksToFeetRight(int ticks){
+  return (ticks / 280.0);
+}
+
+long driveTargetRight = 0;
+long driveTargetLeft = 0;
+
+void driveTurnDeg(int degrees){
+  driveTargetRight = degToTicksRight(degrees);
+  driveTargetLeft = degToTicksLeft(degrees);
+  drivingTask = taskRunLoop(drivePid, 20);
+}
 
 void driveDist(double feet){
-  driveTarget = feetToTicks(feet);
+  driveTargetRight = feetToTicksRight(feet);
+  driveTargetLeft = feetToTicksLeft(feet);
   drivingTask = taskRunLoop(drivePid, 20);
 }
 
@@ -146,8 +184,8 @@ void drivePid(){
 	static double integR;
 	int encL = encoderGet(rightEnc);
 	int encR = encoderGet(leftEnc);
-	int errorL = driveTarget - encL;
-	int errorR = driveTarget - encR;
+	int errorL = driveTargetLeft - encL;
+	int errorR = driveTargetRight - encR;
 
 	static int prevErrorL;
 	static int prevErrorR;
@@ -191,6 +229,8 @@ void lcdControl(){
       sensorView();
       break;
   }
+  if(isNewPress(lcdRight)) sensorIndex++;
+  else if(isNewPress(lcdLeft)) sensorIndex--;
 }
 
 void autonSelect(){
@@ -202,7 +242,34 @@ void autonSelect(){
 }
 
 void sensorView(){
-  // static int sensorState = 0;
+  lcdPrint(uart1, 1, "Sensors %d", sensorIndex);
+  sensorIndex = rectify(sensorIndex, 0, 3);
+  switch (sensorIndex) {
+    case 0:
+      lcdPrint(uart1, 2, "Front %d", analogRead(frontLight));
+      break;
+    case 1:
+      lcdPrint(uart1, 2, "L %d R %d", encoderGet(leftEnc), encoderGet(rightEnc));
+      if(isPressed(lcdMid)){
+        encoderReset(leftEnc);
+        encoderReset(rightEnc);
+      }
+      break;
+    case 2:
+      lcdPrint(uart1, 2, "T %d Ft %f", encoderGet(leftEnc), ticksToFeetLeft(encoderGet(leftEnc)));
+      if(isPressed(lcdMid)){
+        encoderReset(leftEnc);
+        encoderReset(rightEnc);
+      }
+      break;
+    case 3:
+      lcdPrint(uart1, 2, "T %d Ft %f", encoderGet(rightEnc), ticksToFeetLeft(encoderGet(rightEnc)));
+      if(isPressed(lcdMid)){
+        encoderReset(leftEnc);
+        encoderReset(rightEnc);
+      }
+      break;
+  }
 }
 
 void lcdSet(const char *line1, const char *line2){

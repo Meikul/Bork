@@ -33,5 +33,6 @@ extern int sysState;
 extern int autonState;
 extern Semaphore isDoneDriving;
 extern Semaphore isDoneLifting;
+extern Mutex settingDrive;
 
 #endif

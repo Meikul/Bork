@@ -81,17 +81,10 @@ void operatorControl() {
 
 		// Tilt
 		tiltSet(isPressed(btn5u));
-		
+
 		punchSet(isPressed(btn5d));
-
-		// Punch
-		// if(isPressed(btn8d)){
-		// 	punch();
-		// }
-
-		lcdPrint(uart1, 1, "6u %d 5d %d 8u %d", isPressed(btn6u), isPressed(btn5d), isPressed(btn8u));
-		// lcdPrint(uart1, 2, "5u %d 5d %d", isPressed(btn5u), isPressed(btn5d));
-		// lcdControl();
+		
+		lcdControl();
 
 		delay(20);
 	}
