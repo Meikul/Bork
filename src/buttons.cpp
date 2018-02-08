@@ -43,5 +43,18 @@ bool isNewPress(button_t button){
 		return true;
 	}
 
-	else return false;
+	return false;
+}
+
+bool isNewRelease(button_t button){
+  bool currentButton = isPressed(button);
+
+	if(currentButton) lastPress[button] = true;
+
+	else if(!currentButton && lastPress[button]) {
+		lastPress[button] = false;
+		return true;
+	}
+
+	return false;
 }

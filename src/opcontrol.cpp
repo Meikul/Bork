@@ -62,7 +62,7 @@ void operatorControl() {
 						watchingEnc = true;
 					}
 					else if(isDrivingForward() && watchingEnc){
-						if(encoderGet(leftEnc) > (120 - 3 * joystickGetAnalog(1, 3))){
+						if(joystickGetAnalog(1, 3) > 25 || encoderGet(leftEnc) > 80){
 							frontGrabSet(true);
 							watchingEnc = false;
 							watchingFront = false;
@@ -97,7 +97,7 @@ void operatorControl() {
 		// Tilt
 		tiltSet(isPressed(btn5u));
 
-		punchSet(isPressed(btn5d));
+		if(isPressed(btn5d))
 
 		lcdControl();
 
