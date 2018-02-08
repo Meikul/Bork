@@ -32,6 +32,7 @@
 void operatorControl() {
 	bool watchingFront = false;
 	bool watchingBack = false;
+	bool watchingEnc = false;
 	while (1) {
 		// Drive
 		int rStick = joystickGetAnalog(1, 2);
@@ -55,9 +56,23 @@ void operatorControl() {
 			}
 			else{
 				watchingFront = true;
-				if(!digitalRead(frontSwitch)){
-					frontGrabSet(true);
-					watchingFront = false;
+				if(isUnderBase(frontLight)){
+					if(isDrivingForward() && !watchingEnc) {
+						encoderReset(leftEnc);
+						watchingEnc = true;
+					}
+					else if(isDrivingForward() && watchingEnc){
+						if(encoderGet(leftEnc) > (120 - 3 * joystickGetAnalog(1, 3))){
+							frontGrabSet(true);
+							watchingEnc = false;
+							watchingFront = false;
+						}
+					}
+					else{
+						frontGrabSet(true);
+						watchingFront = false;
+						watchingEnc = false;
+					}
 				}
 			}
 		}
@@ -83,7 +98,7 @@ void operatorControl() {
 		tiltSet(isPressed(btn5u));
 
 		punchSet(isPressed(btn5d));
-		
+
 		lcdControl();
 
 		delay(20);

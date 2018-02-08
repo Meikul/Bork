@@ -11,9 +11,6 @@
 
  Encoder rightEnc;
  Encoder leftEnc;
- int sysState = 1;
- int autonState = 0;
- int sensorIndex = 0;
  int motors[10] = {0,0,0,0,0,0,0,0,0,0};
 
  TaskHandle drivingTask;
@@ -21,10 +18,8 @@
  Semaphore isDoneDriving = semaphoreCreate();
  Semaphore isDoneLifting = semaphoreCreate();
 
- void autonSelect();
- void sensorView();
- void lcdSet(const char *line1, const char *line2);
- void lcdSet(int line, const char *string);
+ Semaphore isStableDriving = semaphoreCreate();
+
  int linSpeed(int speed);
  void drivePid();
 
@@ -140,11 +135,6 @@ int degToTicksLeft(int degrees){
   return feetToTicksLeft(driveDistance);
 }
 
-double ticksToFeetLeft(int ticks){
-  // const double circumference = 12.566372;
-  return (ticks / 290.0);
-}
-
 int feetToTicksRight(double feet){
   const int ticksPerFoot = 280;
   return (feet * ticksPerFoot);
@@ -156,10 +146,6 @@ int degToTicksRight(int degrees){
   return feetToTicksRight(driveDistance);
 }
 
-double ticksToFeetRight(int ticks){
-  return (ticks / 280.0);
-}
-
 long driveTargetRight = 0;
 long driveTargetLeft = 0;
 
@@ -169,116 +155,69 @@ void driveTurnDeg(int degrees){
   drivingTask = taskRunLoop(drivePid, 20);
 }
 
+void drivePid(void *parameter){
+  bool done = false;
+  while(!done){
+    const double kp = 0.3;
+    const double ki = 0.0;
+    const double kd = 2.0;
+
+    static double integL;
+    static double integR;
+    int encL = encoderGet(rightEnc);
+    int encR = encoderGet(leftEnc);
+    int errorL = driveTargetLeft - encL;
+    int errorR = driveTargetRight - encR;
+
+    static int prevErrorL;
+    static int prevErrorR;
+    int deltaErrorL = (errorL - prevErrorL);
+    int deltaErrorR = (errorR - prevErrorR);
+
+    if(abs(errorL) < 200){
+      integL += errorL;
+      rectify(integL, -127, 127);
+    }
+    else{
+      integL = 0;
+    }
+
+    if(abs(errorR) < 400){
+      integR += errorR;
+      rectify(integR, -127, 127);
+    }
+    else{
+      integR = 0;
+    }
+
+    int pwrL = (errorL * kp) + (integL * ki) + (deltaErrorL * kd);
+    int pwrR = (errorR * kp) + (integR * ki) + (deltaErrorR * kd);
+    driveSet(pwrL, pwrR);
+    prevErrorL = errorL;
+    prevErrorR = errorR;
+    if(abs(errorR) < 1 && abs(errorL) < 1){
+      done = true;
+      driveSet(0, 0);
+    }
+    delay(20);
+  }
+  semaphoreGive(isDoneDriving);
+}
+
 void driveDist(double feet){
   driveTargetRight = feetToTicksRight(feet);
   driveTargetLeft = feetToTicksLeft(feet);
-  drivingTask = taskRunLoop(drivePid, 20);
+  drivingTask = taskCreate(drivePid, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
 }
 
-void drivePid(){
-	const double kp = 0.3;
-	const double ki = 0.0;
-	const double kd = 2.0;
-
-	static double integL;
-	static double integR;
-	int encL = encoderGet(rightEnc);
-	int encR = encoderGet(leftEnc);
-	int errorL = driveTargetLeft - encL;
-	int errorR = driveTargetRight - encR;
-
-	static int prevErrorL;
-	static int prevErrorR;
-	int deltaErrorL = (errorL - prevErrorL);
-	int deltaErrorR = (errorR - prevErrorR);
-
-	if(abs(errorL) < 200){
-		integL += errorL;
-    rectify(integL, -127, 127);
-	}
-	else{
-		integL = 0;
-	}
-
-	if(abs(errorR) < 400){
-		integR += errorR;
-    rectify(integR, -127, 127);
-	}
-	else{
-		integR = 0;
-	}
-
-	int pwrL = (errorL * kp) + (integL * ki) + (deltaErrorL * kd);
-	int pwrR = (errorR * kp) + (integR * ki) + (deltaErrorR * kd);
-	driveSet(pwrL, pwrR);
-	prevErrorL = errorL;
-	prevErrorR = errorR;
-  if(abs(errorR) < 5 && abs(errorL) < 5){
-    semaphoreGive(isDoneDriving);
-    driveSet(0, 0);
-    taskDelete(drivingTask);
-  }
+bool isUnderBase(int port){
+  unsigned int val = analogRead(port);
+  return (val > 450);
 }
 
-void lcdControl(){
-  switch (sysState) {
-    case 0: // Auton select
-      autonSelect();
-      break;
-    case 1: // Sensor view
-      sensorView();
-      break;
-  }
-  if(isNewPress(lcdRight)) sensorIndex++;
-  else if(isNewPress(lcdLeft)) sensorIndex--;
-}
-
-void autonSelect(){
-  switch (autonState) {
-    case 0: // Whole auton
-      lcdSet(2, "Whole Auton");
-      break;
-  }
-}
-
-void sensorView(){
-  lcdPrint(uart1, 1, "Sensors %d", sensorIndex);
-  sensorIndex = rectify(sensorIndex, 0, 3);
-  switch (sensorIndex) {
-    case 0:
-      lcdPrint(uart1, 2, "Front %d", analogRead(frontLight));
-      break;
-    case 1:
-      lcdPrint(uart1, 2, "L %d R %d", encoderGet(leftEnc), encoderGet(rightEnc));
-      if(isPressed(lcdMid)){
-        encoderReset(leftEnc);
-        encoderReset(rightEnc);
-      }
-      break;
-    case 2:
-      lcdPrint(uart1, 2, "T %d Ft %f", encoderGet(leftEnc), ticksToFeetLeft(encoderGet(leftEnc)));
-      if(isPressed(lcdMid)){
-        encoderReset(leftEnc);
-        encoderReset(rightEnc);
-      }
-      break;
-    case 3:
-      lcdPrint(uart1, 2, "T %d Ft %f", encoderGet(rightEnc), ticksToFeetLeft(encoderGet(rightEnc)));
-      if(isPressed(lcdMid)){
-        encoderReset(leftEnc);
-        encoderReset(rightEnc);
-      }
-      break;
-  }
-}
-
-void lcdSet(const char *line1, const char *line2){
-  lcdSetText(uart1, 1, line1);
-  lcdSetText(uart1, 2, line2);
-}
-
-void lcdSet(int line, const char *string){
-  lcdSetText(uart1, line, string);
+bool isDrivingForward(){
+  int stick = joystickGetAnalog(1, 3);
+  return (stick > 0);
 }
 
 int rectify(int val, int lowerLim, int upperLim){

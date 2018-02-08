@@ -28,6 +28,7 @@
 #include <API.h>
 #include <globals.h>
 #include <buttons.h>
+#include <lcdMenu.h>
 
 // Allow usage of this file in C++ programs
 #ifdef __cplusplus

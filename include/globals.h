@@ -22,9 +22,9 @@ bool frontGrabGet();
 bool backGrabGet();
 void punch();
 void driveStraight(int speed);
-void lcdControl();
 int rectify(int value, int lowerLimit, int upperLimit);
 void driveDist(double feet);
+bool isDrivingForward();
 
 // Global variables
 extern Encoder rightEnc;
