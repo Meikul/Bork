@@ -13,15 +13,7 @@
  Encoder leftEnc;
  int motors[10] = {0,0,0,0,0,0,0,0,0,0};
 
- TaskHandle drivingTask;
- Mutex settingDrive = mutexCreate();
- Semaphore isDoneDriving = semaphoreCreate();
- Semaphore isDoneLifting = semaphoreCreate();
-
- Semaphore isStableDriving = semaphoreCreate();
-
  int linSpeed(int speed);
- void drivePid();
 
 int linSpeed(int speed){
   bool negative = false;
@@ -78,14 +70,6 @@ void punchSet(bool isPunching){
   digitalWrite(shooter, isPunching);
 }
 
-void punch(){
-  if(frontGrabGet()){
-    punchSet(true);
-    delay(500);
-    punchSet(false);
-  }
-}
-
 void driveStraight(int speed){
   // double kp = 0.1;
   // double ki = 0.0;
@@ -124,92 +108,6 @@ void driveSet(int left, int right){
   mset(dl5, -left);
 }
 
-int feetToTicksLeft(double feet){
-  const int ticksPerFoot = 290;
-  return (feet * ticksPerFoot);
-}
-
-int degToTicksLeft(int degrees){
-  const double footPerDeg = 0.02617994;
-  double driveDistance = degrees * footPerDeg / 1.41;
-  return feetToTicksLeft(driveDistance);
-}
-
-int feetToTicksRight(double feet){
-  const int ticksPerFoot = 280;
-  return (feet * ticksPerFoot);
-}
-
-int degToTicksRight(int degrees){
-  const double footPerDeg = 0.02617994;
-  double driveDistance = degrees * footPerDeg / 1.41;
-  return feetToTicksRight(driveDistance);
-}
-
-long driveTargetRight = 0;
-long driveTargetLeft = 0;
-
-void driveTurnDeg(int degrees){
-  driveTargetRight = degToTicksRight(degrees);
-  driveTargetLeft = degToTicksLeft(degrees);
-  drivingTask = taskRunLoop(drivePid, 20);
-}
-
-void drivePid(void *parameter){
-  bool done = false;
-  while(!done){
-    const double kp = 0.3;
-    const double ki = 0.0;
-    const double kd = 2.0;
-
-    static double integL;
-    static double integR;
-    int encL = encoderGet(rightEnc);
-    int encR = encoderGet(leftEnc);
-    int errorL = driveTargetLeft - encL;
-    int errorR = driveTargetRight - encR;
-
-    static int prevErrorL;
-    static int prevErrorR;
-    int deltaErrorL = (errorL - prevErrorL);
-    int deltaErrorR = (errorR - prevErrorR);
-
-    if(abs(errorL) < 200){
-      integL += errorL;
-      rectify(integL, -127, 127);
-    }
-    else{
-      integL = 0;
-    }
-
-    if(abs(errorR) < 400){
-      integR += errorR;
-      rectify(integR, -127, 127);
-    }
-    else{
-      integR = 0;
-    }
-
-    int pwrL = (errorL * kp) + (integL * ki) + (deltaErrorL * kd);
-    int pwrR = (errorR * kp) + (integR * ki) + (deltaErrorR * kd);
-    driveSet(pwrL, pwrR);
-    prevErrorL = errorL;
-    prevErrorR = errorR;
-    if(abs(errorR) < 1 && abs(errorL) < 1){
-      done = true;
-      driveSet(0, 0);
-    }
-    delay(20);
-  }
-  semaphoreGive(isDoneDriving);
-}
-
-void driveDist(double feet){
-  driveTargetRight = feetToTicksRight(feet);
-  driveTargetLeft = feetToTicksLeft(feet);
-  drivingTask = taskCreate(drivePid, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
-}
-
 bool isUnderBase(int port){
   unsigned int val = analogRead(port);
   return (val > 450);
@@ -224,4 +122,9 @@ int rectify(int val, int lowerLim, int upperLim){
   if(val < lowerLim) val = lowerLim;
   else if(val > upperLim) val = upperLim;
   return val;
+}
+
+int getAccel(){
+  const int accelBias = 1785;
+  return analogRead(accel) - accelBias;
 }

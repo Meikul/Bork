@@ -38,4 +38,11 @@ bool isNewPress(button_t button);
  */
 bool isPressed(button_t button);
 
+/**
+ * Checks for a new button release
+ * @param  button which button to check
+ * @return        if button is newly released
+ */
+bool isNewRelease(button_t button);
+
 #endif

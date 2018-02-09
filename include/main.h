@@ -26,9 +26,10 @@
 #define MAIN_H_
 
 #include <API.h>
-#include <globals.h>
-#include <buttons.h>
-#include <lcdMenu.h>
+#include "movement.h"
+#include "buttons.h"
+#include "lcdMenu.h"
+#include "smart.h"
 
 // Allow usage of this file in C++ programs
 #ifdef __cplusplus
@@ -132,7 +133,8 @@ void operatorControl();
 #define dle2 4
 
 #define frontLight 1
-#define backLight 2
+#define accel 2
+#define backLight 3
 
 // End C++ export structure
 #ifdef __cplusplus

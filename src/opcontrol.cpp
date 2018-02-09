@@ -33,6 +33,7 @@ void operatorControl() {
 	bool watchingFront = false;
 	bool watchingBack = false;
 	bool watchingEnc = false;
+	bool hasPunched = false;
 	while (1) {
 		// Drive
 		int rStick = joystickGetAnalog(1, 2);
@@ -62,7 +63,7 @@ void operatorControl() {
 						watchingEnc = true;
 					}
 					else if(isDrivingForward() && watchingEnc){
-						if(joystickGetAnalog(1, 3) > 25 || encoderGet(leftEnc) > 80){
+						if(joystickGetAnalog(1, 3) > 20 || encoderGet(leftEnc) > 80){
 							frontGrabSet(true);
 							watchingEnc = false;
 							watchingFront = false;
@@ -94,10 +95,29 @@ void operatorControl() {
 		if(!isPressed(btn6u)) watchingFront = false;
 		if(!isPressed(btn6d)) watchingBack = false;
 
-		// Tilt
-		tiltSet(isPressed(btn5u));
-
-		if(isPressed(btn5d))
+		if(isPressed(btn5u)){
+				punchSet(true);
+		}
+		else if(isNewRelease(btn5u)){
+			punchSet(false);
+			frontGrabSet(false);
+			watchingFront = false;
+		}
+		else if(isPressed(btn5d)){
+			if(abs(getAccel()) > 40) {
+				punchSet(true);
+				hasPunched = true;
+			}
+		}
+		else if(!hasPunched){
+			hasPunched = false;
+			punchSet(false);
+		}
+		if(isNewRelease(btn5d) && hasPunched){
+			punchSet(false);
+			frontGrabSet(false);
+			watchingFront = false;
+		}
 
 		lcdControl();
 
