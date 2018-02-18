@@ -120,21 +120,21 @@ void operatorControl();
 
 // Solenoids
 #define frontGrab 9
-#define tilter 10
+#define baseGate 10
 #define backGrab 11
 #define shooter 12
 
 // Sensors
-#define frontSwitch 1
-#define backSwitch 2
-#define dre1 7
-#define dre2 8
+#define dre1 1
+#define dre2 2
 #define dle1 3
 #define dle2 4
 
-#define frontLight 1
+#define frontLight 3
 #define accel 2
-#define backLight 3
+#define backLight 1
+
+void firstBase();
 
 // End C++ export structure
 #ifdef __cplusplus

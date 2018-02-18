@@ -1,8 +1,37 @@
 #include "main.h"
+#include <math.h>
 
 TaskHandle drivingTask;
+void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRight, int slew);
 
-void drivePid(void * parameter);
+bool signChanged(unsigned int index, int val){
+  return signChanged(index, (double)val);
+}
+
+bool signChanged(unsigned int index, double val){
+  static bool wasNegative[2] = {false, false};
+  bool isNegative = (val != abs(val));
+  bool changed = (wasNegative[index] != isNegative);
+  wasNegative[index] = isNegative;
+  return changed;
+}
+
+bool isMoving(){
+  static int counts = 0;
+  long encL = encoderGet(leftEnc);
+  long encR = encoderGet(rightEnc);
+  static long prevEncL = 0;
+  static long prevEncR = 0;
+  if((abs(encL - prevEncL) < 5 || abs(encR - prevEncR) < 5)) counts++;
+  else counts = 0;
+  if(counts > 40){
+    counts = 0;
+    return false;
+  }
+  prevEncL = encL;
+  prevEncR = encR;
+  return true;
+}
 
 int feetToTicksLeft(double feet){
   const int ticksPerFoot = 290;
@@ -11,8 +40,8 @@ int feetToTicksLeft(double feet){
 
 int degToTicksLeft(int degrees){
   const double footPerDeg = 0.02617994;
-  double driveDistance = degrees * footPerDeg / 1.41;
-  return feetToTicksLeft(driveDistance);
+  double driveDistance = degrees * footPerDeg / 1.95;
+  return -feetToTicksLeft(driveDistance);
 }
 
 int feetToTicksRight(double feet){
@@ -22,49 +51,59 @@ int feetToTicksRight(double feet){
 
 int degToTicksRight(int degrees){
   const double footPerDeg = 0.02617994;
-  double driveDistance = degrees * footPerDeg / 1.41;
+  double driveDistance = degrees * footPerDeg / 1.95;
   return feetToTicksRight(driveDistance);
 }
 
-long driveTargetRight = 0;
-long driveTargetLeft = 0;
+int driveTargetRight = 0;
+int driveTargetLeft = 0;
 
 void driveTurnDeg(int degrees){
-  driveTargetRight = degToTicksRight(degrees);
-  driveTargetLeft = degToTicksLeft(degrees);
-  drivingTask = taskCreate(drivePid, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+  int targetRight = degToTicksRight(degrees);
+  int targetLeft = degToTicksLeft(degrees);
+  // drivingTask = taskCreate(drivePid, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+  drivePidArgs(0.4, 0.005, 1.3, targetLeft, targetRight, 15);
 }
 
-void drivePid(void * parameter){
+void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRight){
+  drivePidArgs(kp, ki, kd, targetLeft, targetRight, 30);
+}
+
+void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRight, int slew){
   bool done = false;
-  while(!done){
-    const double kp = 0.3;
-    const double ki = 0.0;
-    const double kd = 2.0;
+  encoderReset(rightEnc);
+  encoderReset(leftEnc);
+  double integL = 0;
+  double integR = 0;
+  int encL = 0;
+  int encR = 0;
+  int errorL = targetLeft - encL;
+  int errorR = targetRight - encR;
+  int prevErrorL = errorL;
+  int prevErrorR = errorR;
+  int stoppedCycles = 0;
+  int capInteg = 127 / ki;
+  while(!done && !isNewPress(btn8r)){
+    encL = encoderGet(leftEnc);
+    encR = encoderGet(rightEnc);
 
-    static double integL;
-    static double integR;
-    int encL = encoderGet(rightEnc);
-    int encR = encoderGet(leftEnc);
-    int errorL = driveTargetLeft - encL;
-    int errorR = driveTargetRight - encR;
+    errorL = targetLeft - encL;
+    errorR = targetRight - encR;
 
-    static int prevErrorL;
-    static int prevErrorR;
     int deltaErrorL = (errorL - prevErrorL);
     int deltaErrorR = (errorR - prevErrorR);
 
-    if(abs(errorL) < 200){
+    if(abs(errorL) < 150){
       integL += errorL;
-      rectify(integL, -127, 127);
+      integL = rectify(integL, -capInteg, capInteg);
     }
     else{
       integL = 0;
     }
 
-    if(abs(errorR) < 400){
+    if(abs(errorR) < 150){
       integR += errorR;
-      rectify(integR, -127, 127);
+      integR = rectify(integR, -capInteg, capInteg);
     }
     else{
       integR = 0;
@@ -72,20 +111,131 @@ void drivePid(void * parameter){
 
     int pwrL = (errorL * kp) + (integL * ki) + (deltaErrorL * kd);
     int pwrR = (errorR * kp) + (integR * ki) + (deltaErrorR * kd);
-    driveSet(pwrL, pwrR);
+
+    pwrL = rectify(pwrL);
+    pwrR = rectify(pwrR);
+    driveSetRamp(pwrL, pwrR, slew);
     prevErrorL = errorL;
     prevErrorR = errorR;
-    if(abs(errorR) < 1 && abs(errorL) < 1){
+    if(abs(deltaErrorL) < 5 && abs(deltaErrorR) < 5){
+      stoppedCycles++;
+    }
+    else{
+      stoppedCycles = 0;
+    }
+    if(stoppedCycles > 15){
       done = true;
       driveSet(0, 0);
     }
+    lcdPrint(uart1, 1, "L %d R %d", errorL, errorR);
+    lcdPrint(uart1, 2, "L %d R %d", pwrL, pwrR);
     delay(20);
   }
-  semaphoreGive(isDoneDriving);
 }
 
+// void drivePid(void * ignore){
+//   bool done = false;
+//   encoderReset(rightEnc);
+//   encoderReset(leftEnc);
+//   double integL = 0;
+//   double integR = 0;
+//   int encL = encoderGet(leftEnc);
+//   int encR = encoderGet(rightEnc);
+//   int errorL = driveTargetLeft - encL;
+//   int errorR = driveTargetRight - encR;
+//   int prevErrorL = errorL;
+//   int prevErrorR = errorR;
+//   while(!done && ! isNewPress(btn8l)){
+//     const double kp = 0.3;
+//     const double ki = 0.0;
+//     const double kd = 0.9;
+//
+//     encL = encoderGet(leftEnc);
+//     encR = encoderGet(rightEnc);
+//
+//     errorL = driveTargetLeft - encL;
+//     errorR = driveTargetRight - encR;
+//
+//     int deltaErrorL = (errorL - prevErrorL);
+//     int deltaErrorR = (errorR - prevErrorR);
+//
+//     if(abs(errorL) < 400){
+//       integL += errorL;
+//       rectify(integL);
+//     }
+//     else{
+//       integL = 0;
+//     }
+//
+//     if(abs(errorR) < 400){
+//       integR += errorR;
+//       rectify(integR);
+//     }
+//     else{
+//       integR = 0;
+//     }
+//
+//     int pwrL = (errorL * kp) + (integL * ki) + (deltaErrorL * kd);
+//     int pwrR = (errorR * kp) + (integR * ki) + (deltaErrorR * kd);
+//
+//     pwrL = rectify(pwrL);
+//     pwrR = rectify(pwrR);
+//     driveSet(pwrL, pwrR);
+//     prevErrorL = errorL;
+//     prevErrorR = errorR;
+//     if(abs(deltaErrorL) == 0 && abs(errorL) < 20 && abs(deltaErrorR) == 0){
+//       done = true;
+//       driveSet(0, 0);
+//     }
+//     delay(20);
+//   }
+// }
+
 void driveDist(double feet){
-  driveTargetRight = feetToTicksRight(feet);
-  driveTargetLeft = feetToTicksLeft(feet);
-  drivingTask = taskCreate(drivePid, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+  int targetRight = feetToTicksRight(feet);
+  int targetLeft = feetToTicksLeft(feet);
+  // drivingTask = taskCreate(drivePid, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+  drivePidArgs(0.3, 0.0, 1.0, targetLeft, targetRight);
+}
+
+void driveWaitRamp(double feet, int leftPwr, int rightPwr, int slew){
+  encoderReset(rightEnc);
+  encoderReset(leftEnc);
+  int targetTicks = feetToTicksLeft(feet);
+  int prevEncL = encoderGet(leftEnc);
+  int encL = encoderGet(leftEnc);
+  int prevEncR = encoderGet(rightEnc);
+  int encR = encoderGet(rightEnc);
+  int counts = 0;
+  while(abs(encL) < abs(targetTicks) && counts < 40){
+    encL = encoderGet(leftEnc);
+    encR = encoderGet(rightEnc);
+    driveSetRamp(leftPwr, rightPwr, slew);
+    lcdPrint(uart1, 1, "T %d C %d", encL, counts);
+    lcdPrint(uart1, 2, "D %d M %d", (encL-prevEncL), motorGet(dr1));
+    if((abs(encL - prevEncL) < 5 || abs(encR - prevEncR) < 5)) counts++;
+    else counts = 0;
+    prevEncL = encL;
+    prevEncR = encR;
+    delay(20);
+  }
+}
+
+void driveWait(double feet, int leftPwr, int rightPwr){
+  driveWaitRamp(feet, leftPwr, rightPwr, 30);
+}
+
+void smartGrabFront(int power){
+  power = rectify(power);
+  bool done = false;
+  int timeOut = 0;
+  while(!done && isMoving() && timeOut < 100){
+    driveSet(power, power);
+    if(isUnderBase(frontLight)) break;
+    timeOut++;
+    delay(20);
+  }
+  frontGrabSet(true);
+  gateSet(false);
+  driveSetImm(0, 0);
 }

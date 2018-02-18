@@ -29,11 +29,24 @@
  *
  * This task should never exit; it should end with some kind of infinite loop, even if empty.
  */
+void turn90(){
+	driveTurnDeg(90);
+}
+
+void turn180(){
+	driveTurnDeg(180);
+}
+
+void turn360(){
+	driveTurnDeg(360);
+}
+
 void operatorControl() {
 	bool watchingFront = false;
 	bool watchingBack = false;
 	bool watchingEnc = false;
 	bool hasPunched = false;
+	// TaskHandle lcdMenu = taskCreate(lcdControl, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
 	while (1) {
 		// Drive
 		int rStick = joystickGetAnalog(1, 2);
@@ -43,6 +56,7 @@ void operatorControl() {
 		// Grab
 		if(isNewPress(btn8u)){
 			frontGrabSet(!frontGrabGet());
+			gateSet(false);
 			watchingFront = false;
 		}
 		if(isNewPress(btn8d)){
@@ -63,14 +77,16 @@ void operatorControl() {
 						watchingEnc = true;
 					}
 					else if(isDrivingForward() && watchingEnc){
-						if(joystickGetAnalog(1, 3) > 20 || encoderGet(leftEnc) > 80){
+						if(joystickGetAnalog(1, 3) > 20 || encoderGet(leftEnc) > 50){
 							frontGrabSet(true);
+							gateSet(false);
 							watchingEnc = false;
 							watchingFront = false;
 						}
 					}
 					else{
 						frontGrabSet(true);
+						gateSet(false);
 						watchingFront = false;
 						watchingEnc = false;
 					}
@@ -85,42 +101,78 @@ void operatorControl() {
 			}
 			else{
 				watchingBack = true;
-				if(!digitalRead(backSwitch)){
-					backGrabSet(true);
-					watchingBack = false;
+				if(isUnderBase(backLight)){
+					if(isDrivingForward() && !watchingEnc) {
+						encoderReset(leftEnc);
+						watchingEnc = true;
+					}
+					else if(isDrivingForward() && watchingEnc){
+						if(joystickGetAnalog(1, 3) > 20 || encoderGet(leftEnc) > 80){
+							backGrabSet(true);
+							watchingEnc = false;
+							watchingBack = false;
+						}
+					}
+					else{
+						backGrabSet(true);
+						watchingBack = false;
+						watchingEnc = false;
+					}
 				}
 			}
 		}
+		// if(isNewPress(btn6d) || watchingBack){
+		// 	if(backGrabGet()){
+		// 		backGrabSet(false);
+		// 		watchingBack = false;
+		// 	}
+		// 	else{
+		// 		watchingBack = true;
+		// 		if(!digitalRead(backSwitch)){
+		// 			backGrabSet(true);
+		// 			watchingBack = false;
+		// 		}
+		// 	}
+		// }
 
 		if(!isPressed(btn6u)) watchingFront = false;
 		if(!isPressed(btn6d)) watchingBack = false;
 
+		if(isNewPress(btn7u)) gateSet(!gateGet());
+
 		if(isPressed(btn5u)){
 				punchSet(true);
 		}
-		else if(isNewRelease(btn5u)){
+		if(isNewRelease(btn5u)){
 			punchSet(false);
 			frontGrabSet(false);
 			watchingFront = false;
 		}
-		else if(isPressed(btn5d)){
-			if(abs(getAccel()) > 40) {
-				punchSet(true);
-				hasPunched = true;
+		else if(!isPressed(btn5u)){
+			if(isPressed(btn5d)){
+				if(abs(getAccel()) > 35) {
+					punchSet(true);
+					hasPunched = true;
+				}
+			}
+			else if(!hasPunched){
+				hasPunched = false;
+				punchSet(false);
+			}
+			if(isNewRelease(btn5d) && hasPunched){
+				punchSet(false);
+				frontGrabSet(false);
+				watchingFront = false;
 			}
 		}
-		else if(!hasPunched){
-			hasPunched = false;
-			punchSet(false);
-		}
-		if(isNewRelease(btn5d) && hasPunched){
-			punchSet(false);
-			frontGrabSet(false);
-			watchingFront = false;
-		}
+		lcdControl(NULL);
 
-		lcdControl();
+		if(isPressed(btn8l)) firstBase();
+		if(isPressed(btn8r)) turn90();
+		if(isPressed(btn7l)) turn180();
+		if(isPressed(btn7r)) turn360();
 
 		delay(20);
 	}
+	// taskDelete(lcdMenu);
 }

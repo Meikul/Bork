@@ -58,12 +58,12 @@ bool backGrabGet(){
   return digitalRead(backGrab);
 }
 
-void tiltSet(bool isTilting){
-  digitalWrite(tilter, isTilting);
+void gateSet(bool isOpen){
+  digitalWrite(baseGate, isOpen);
 }
 
-bool tiltGet(){
-  return digitalRead(tilter);
+bool gateGet(){
+  return digitalRead(baseGate);
 }
 
 void punchSet(bool isPunching){
@@ -85,12 +85,31 @@ void driveStraight(int speed){
 }
 
 void mset(int port, int targetSpeed){
-  targetSpeed = rectify(targetSpeed, -127, 127);
-  static const unsigned int slew = 30;
+  mset(port, targetSpeed, 30);
+}
+
+void mset(int port, int targetSpeed, int slew){
+  slew = abs(slew);
+  targetSpeed = rectify(targetSpeed);
   int curSpeed = motors[port-1];
   int output = rectify(targetSpeed, curSpeed-slew, curSpeed+slew);
   motorSet(port, output);
   motors[port-1] = output;
+}
+
+void driveSetRamp(int left, int right, int slew){
+  left = linSpeed(left);
+  right = linSpeed(right);
+  mset(dr1, right, slew);
+  mset(dr2, -right, slew);
+  mset(dr3, right, slew);
+  mset(dr4, -right, slew);
+  mset(dr5, right, slew);
+  mset(dl1, -left, slew);
+  mset(dl2, -left, slew);
+  mset(dl3, -left, slew);
+  mset(dl4, left, slew);
+  mset(dl5, -left, slew);
 }
 
 void driveSet(int left, int right){
@@ -108,9 +127,37 @@ void driveSet(int left, int right){
   mset(dl5, -left);
 }
 
+void driveSetImm(int left, int right){
+  left = linSpeed(left);
+  right = linSpeed(right);
+  motorSet(dr1, right);
+  motorSet(dr2, -right);
+  motorSet(dr3, right);
+  motorSet(dr4, -right);
+  motorSet(dr5, right);
+  motorSet(dl1, -left);
+  motorSet(dl2, -left);
+  motorSet(dl3, -left);
+  motorSet(dl4, left);
+  motorSet(dl5, -left);
+}
+
+void driveSetNoLin(int left, int right){
+  mset(dr1, right);
+  mset(dr2, -right);
+  mset(dr3, right);
+  mset(dr4, -right);
+  mset(dr5, right);
+  mset(dl1, -left);
+  mset(dl2, -left);
+  mset(dl3, -left);
+  mset(dl4, left);
+  mset(dl5, -left);
+}
+
 bool isUnderBase(int port){
   unsigned int val = analogRead(port);
-  return (val > 450);
+  return (val < 2970);
 }
 
 bool isDrivingForward(){
@@ -122,6 +169,10 @@ int rectify(int val, int lowerLim, int upperLim){
   if(val < lowerLim) val = lowerLim;
   else if(val > upperLim) val = upperLim;
   return val;
+}
+
+int rectify(int val){
+  return rectify(val, -127, 127);
 }
 
 int getAccel(){
