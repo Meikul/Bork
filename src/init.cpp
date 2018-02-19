@@ -12,6 +12,12 @@
 
 #include "main.h"
 
+// Define globals
+Encoder rightEnc;
+Encoder leftEnc;
+Gyro gyro;
+
+
 /*
  * Runs pre-initialization code. This function will be started in kernel mode one time while the
  * VEX Cortex is starting up. As the scheduler is still paused, most API functions will fail.
@@ -38,4 +44,5 @@ void initialize() {
   lcdSetText(uart1, 2, "    Bork 1.0");
   rightEnc = encoderInit(dre1, dre2, true);
   leftEnc = encoderInit(dle1, dle2, true);
+  gyro = gyroInit(gyroPort, 0);
 }

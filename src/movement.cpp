@@ -9,8 +9,6 @@
  * configure a UART port (usartOpen()) but cannot set up an LCD (lcdInit()).
  */
 
- Encoder rightEnc;
- Encoder leftEnc;
  int motors[10] = {0,0,0,0,0,0,0,0,0,0};
 
  int linSpeed(int speed);

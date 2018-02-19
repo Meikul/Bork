@@ -31,7 +31,7 @@ void autonomous() {
 void firstBase(){
   frontGrabSet(false);
   gateSet(true);
-  driveDist(4);
+  driveDist(4, 't');
   smartGrabFront(40);
   gateSet(false);
   delay(700);

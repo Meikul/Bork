@@ -30,8 +30,5 @@ bool isDrivingForward();
 int getAccel();
 bool isUnderBase(int port);
 
-// Global variables
-extern Encoder rightEnc;
-extern Encoder leftEnc;
 
 #endif

@@ -9,6 +9,8 @@ void driveStraight(int speed);
 
 void driveDist(double feet);
 
+void driveDist(double feet, char stopOnCode);
+
 void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRight);
 
 void driveDistSync(double feet);

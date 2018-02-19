@@ -1,6 +1,6 @@
 #include "main.h"
 
-int sysState = 0;
+int sysState = 1;
 int autonState = 0;
 int sensorIndex = 0;
 
@@ -98,7 +98,6 @@ void pidTune(){
 }
 
 void autonSelect(){
-  static double distance = 0;
   static bool msgTaskRunning = false;
   static TaskHandle msgTask = NULL;
   autonState = rectify(autonState, -1, 4);
@@ -196,19 +195,31 @@ void autonSelect(){
 
 void sensorView(){
   lcdPrint(uart1, 1, "Sensors %d", sensorIndex);
-  sensorIndex = rectify(sensorIndex, -2, 4);
+  sensorIndex = rectify(sensorIndex, -3, 4);
   static int accMax = 0;
   switch (sensorIndex) {
-    case -2:
+    case -3:
       lcdPrint(uart1, 2, "L %d R %d", joystickGetAnalog(1, 3), joystickGetAnalog(1, 2));
       break;
-    case -1:
+    case -2:
       lcdPrint(uart1, 2, "Front %d", analogRead(frontLight));
       if(isNewPress(lcdMid)) sysState = 0;
       break;
-    case 0:
+    case -1:
       lcdPrint(uart1, 2, "Back %d", analogRead(backLight));
       if(isNewPress(lcdMid)) sysState = 0;
+      break;
+    case 0:
+      lcdPrint(uart1, 2, "Gyro %d", gyroGet(gyro));
+      if(isPressed(lcdMid)) gyroReset(gyro);
+      if(isNewPress(btn7l)){
+        gyroShutdown(gyro);
+        delay(100);
+        gyro = gyroInit(gyroPort, 0);
+      }
+      if(isPressed(btn8l)) driveTurnDeg(45);
+      if(isPressed(btn8r)) driveTurnDeg(90);
+      if(isPressed(btn7r)) driveTurnDeg(180);
       break;
     case 1:
       lcdPrint(uart1, 2, "L %d R %d", encoderGet(leftEnc), encoderGet(rightEnc));

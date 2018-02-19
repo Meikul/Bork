@@ -29,18 +29,6 @@
  *
  * This task should never exit; it should end with some kind of infinite loop, even if empty.
  */
-void turn90(){
-	driveTurnDeg(90);
-}
-
-void turn180(){
-	driveTurnDeg(180);
-}
-
-void turn360(){
-	driveTurnDeg(360);
-}
-
 void operatorControl() {
 	bool watchingFront = false;
 	bool watchingBack = false;
@@ -166,11 +154,6 @@ void operatorControl() {
 			}
 		}
 		lcdControl(NULL);
-
-		if(isPressed(btn8l)) firstBase();
-		if(isPressed(btn8r)) turn90();
-		if(isPressed(btn7l)) turn180();
-		if(isPressed(btn7r)) turn360();
 
 		delay(20);
 	}

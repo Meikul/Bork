@@ -130,11 +130,18 @@ void operatorControl();
 #define dle1 3
 #define dle2 4
 
-#define frontLight 3
-#define accel 2
 #define backLight 1
+#define accel 2
+#define frontLight 3
+#define gyroPort 4
 
 void firstBase();
+
+
+// Global variables
+extern Encoder rightEnc;
+extern Encoder leftEnc;
+extern Gyro gyro;
 
 // End C++ export structure
 #ifdef __cplusplus

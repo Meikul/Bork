@@ -2,7 +2,11 @@
 #include <math.h>
 
 TaskHandle drivingTask;
+
 void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRight, int slew);
+void driveTurnPid(double kp, double ki, double kd, int target, int slew);
+
+char drivePidStopOn = 's';
 
 bool signChanged(unsigned int index, int val){
   return signChanged(index, (double)val);
@@ -59,10 +63,51 @@ int driveTargetRight = 0;
 int driveTargetLeft = 0;
 
 void driveTurnDeg(int degrees){
-  int targetRight = degToTicksRight(degrees);
-  int targetLeft = degToTicksLeft(degrees);
   // drivingTask = taskCreate(drivePid, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
-  drivePidArgs(0.4, 0.005, 1.3, targetLeft, targetRight, 15);
+  driveTurnPid(5.0, 0.0, 20.0, degrees, 127);
+}
+
+void driveTurnPid(double kp, double ki, double kd, int target, int slew){
+  bool done = false;
+  double integ = 0;
+  gyroReset(gyro);
+  int error = target - gyroGet(gyro);
+  int prevError = error;
+  int stoppedCycles = 0;
+  int capInteg = 127 / ki;
+  while(!done && !isNewPress(btn8r)){
+
+    error = target - gyroGet(gyro);
+
+    int deltaError = (error - prevError);
+
+    if(abs(error) < 30){
+      integ += error;
+      integ = rectify(integ, -capInteg, capInteg);
+    }
+    else{
+      integ = 0;
+    }
+
+    int pwr = (error * kp) + (integ * ki) + (deltaError * kd);
+
+    pwr = rectify(pwr, -100, 100);
+    driveSetRamp(-pwr, pwr, slew);
+    prevError = error;
+    if(abs(deltaError) < 1 && abs(error) < 5){
+      stoppedCycles++;
+    }
+    else{
+      stoppedCycles = 0;
+    }
+    if(stoppedCycles > 20){
+      done = true;
+      driveSet(0, 0);
+    }
+    lcdPrint(uart1, 1, "Tar %d Val %d", target, gyroGet(gyro));
+    lcdPrint(uart1, 2, "Err %d Pwr %d", error, pwr);
+    delay(20);
+  }
 }
 
 void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRight){
@@ -83,6 +128,7 @@ void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRig
   int prevErrorR = errorR;
   int stoppedCycles = 0;
   int capInteg = 127 / ki;
+  bool initErrIsNeg = targetLeft < 0;
   while(!done && !isNewPress(btn8r)){
     encL = encoderGet(leftEnc);
     encR = encoderGet(rightEnc);
@@ -117,13 +163,19 @@ void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRig
     driveSetRamp(pwrL, pwrR, slew);
     prevErrorL = errorL;
     prevErrorR = errorR;
+
+    bool errIsNeg = (errorL < 0);
     if(abs(deltaErrorL) < 5 && abs(deltaErrorR) < 5){
       stoppedCycles++;
     }
     else{
       stoppedCycles = 0;
     }
-    if(stoppedCycles > 15){
+    if(drivePidStopOn == 's' && stoppedCycles > 15){
+      done = true;
+      driveSet(0, 0);
+    }
+    else if(drivePidStopOn == 't' && (errIsNeg != initErrIsNeg)){
       done = true;
       driveSet(0, 0);
     }
@@ -131,6 +183,7 @@ void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRig
     lcdPrint(uart1, 2, "L %d R %d", pwrL, pwrR);
     delay(20);
   }
+  drivePidStopOn = 's';
 }
 
 // void drivePid(void * ignore){
@@ -191,11 +244,16 @@ void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRig
 //   }
 // }
 
-void driveDist(double feet){
+
+void driveDist(double feet, char stopOnCode){
   int targetRight = feetToTicksRight(feet);
   int targetLeft = feetToTicksLeft(feet);
-  // drivingTask = taskCreate(drivePid, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+  drivePidStopOn = stopOnCode;
   drivePidArgs(0.3, 0.0, 1.0, targetLeft, targetRight);
+}
+
+void driveDist(double feet){
+  driveDist(feet, 's');
 }
 
 void driveWaitRamp(double feet, int leftPwr, int rightPwr, int slew){
@@ -232,6 +290,21 @@ void smartGrabFront(int power){
   while(!done && isMoving() && timeOut < 100){
     driveSet(power, power);
     if(isUnderBase(frontLight)) break;
+    timeOut++;
+    delay(20);
+  }
+  frontGrabSet(true);
+  gateSet(false);
+  driveSetImm(0, 0);
+}
+
+void smartGrabBack(int power){
+  power = rectify(power);
+  bool done = false;
+  int timeOut = 0;
+  while(!done && isMoving() && timeOut < 100){
+    driveSet(power, power);
+    if(isUnderBase(backLight)) break;
     timeOut++;
     delay(20);
   }
