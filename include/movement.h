@@ -28,7 +28,9 @@ int rectify(int value, int lowerLimit, int upperLimit);
 int rectify(int value);
 bool isDrivingForward();
 int getAccel();
-bool isUnderBase(int port);
-
+bool isOverBase(int port);
+bool isOverLine(int port);
+bool isOverLine();
+void driveStop();
 
 #endif

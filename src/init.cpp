@@ -43,6 +43,6 @@ void initialize() {
   lcdSetText(uart1, 1, "      USURP");
   lcdSetText(uart1, 2, "    Bork 1.0");
   rightEnc = encoderInit(dre1, dre2, true);
-  leftEnc = encoderInit(dle1, dle2, true);
+  leftEnc = encoderInit(dle1, dle2, false);
   gyro = gyroInit(gyroPort, 0);
 }

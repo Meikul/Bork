@@ -125,17 +125,25 @@ void operatorControl();
 #define shooter 12
 
 // Sensors
-#define dre1 1
-#define dre2 2
+#define launchSwitch 1
 #define dle1 3
 #define dle2 4
+#define dre1 5
+#define dre2 6
 
 #define backLight 1
-#define accel 2
+#define accel 7
 #define frontLight 3
 #define gyroPort 4
+#define lineLeft 5
+#define lineRight 6
+
+#define DEFAULT_SLEW 30
+#define launchDelay 220
+
 
 void firstBase();
+void launchFirstBase();
 
 
 // Global variables

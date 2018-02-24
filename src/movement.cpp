@@ -68,6 +68,10 @@ void punchSet(bool isPunching){
   digitalWrite(shooter, isPunching);
 }
 
+void driveStop(){
+  driveSetImm(0, 0);
+}
+
 void driveStraight(int speed){
   // double kp = 0.1;
   // double ki = 0.0;
@@ -83,7 +87,7 @@ void driveStraight(int speed){
 }
 
 void mset(int port, int targetSpeed){
-  mset(port, targetSpeed, 30);
+  mset(port, targetSpeed, DEFAULT_SLEW);
 }
 
 void mset(int port, int targetSpeed, int slew){
@@ -153,7 +157,16 @@ void driveSetNoLin(int left, int right){
   mset(dl5, -left);
 }
 
-bool isUnderBase(int port){
+bool isOverLine(){
+  return (isOverLine(lineLeft) || isOverLine(lineRight));
+}
+
+bool isOverLine(int port){
+  unsigned int val = analogRead(port);
+  return (val < 2000);
+}
+
+bool isOverBase(int port){
   unsigned int val = analogRead(port);
   return (val < 2970);
 }

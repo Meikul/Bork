@@ -59,7 +59,7 @@ void operatorControl() {
 			}
 			else{
 				watchingFront = true;
-				if(isUnderBase(frontLight)){
+				if(isOverBase(frontLight)){
 					if(isDrivingForward() && !watchingEnc) {
 						encoderReset(leftEnc);
 						watchingEnc = true;
@@ -89,7 +89,7 @@ void operatorControl() {
 			}
 			else{
 				watchingBack = true;
-				if(isUnderBase(backLight)){
+				if(isOverBase(backLight)){
 					if(isDrivingForward() && !watchingEnc) {
 						encoderReset(leftEnc);
 						watchingEnc = true;
@@ -109,19 +109,6 @@ void operatorControl() {
 				}
 			}
 		}
-		// if(isNewPress(btn6d) || watchingBack){
-		// 	if(backGrabGet()){
-		// 		backGrabSet(false);
-		// 		watchingBack = false;
-		// 	}
-		// 	else{
-		// 		watchingBack = true;
-		// 		if(!digitalRead(backSwitch)){
-		// 			backGrabSet(true);
-		// 			watchingBack = false;
-		// 		}
-		// 	}
-		// }
 
 		if(!isPressed(btn6u)) watchingFront = false;
 		if(!isPressed(btn6d)) watchingBack = false;
@@ -138,9 +125,19 @@ void operatorControl() {
 		}
 		else if(!isPressed(btn5u)){
 			if(isPressed(btn5d)){
-				if(abs(getAccel()) > 35) {
-					punchSet(true);
-					hasPunched = true;
+				// if(digitalRead(launchSwitch)){
+				// 	punchSet(true);
+				// 	hasPunched = true;
+				// }
+				if(isOverLine()){
+					encoderReset(leftEnc);
+					while(encoderGet(leftEnc) < launchDelay && isPressed(btn5d)){
+						delay(10);
+					}
+					if(isPressed(btn5d)){
+						punchSet(true);
+						hasPunched = true;
+					}
 				}
 			}
 			else if(!hasPunched){

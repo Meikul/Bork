@@ -1,6 +1,6 @@
 #include "main.h"
 
-int sysState = 1;
+int sysState = 0;
 int autonState = 0;
 int sensorIndex = 0;
 
@@ -99,22 +99,35 @@ void pidTune(){
 
 void autonSelect(){
   static bool msgTaskRunning = false;
+  static bool autonBtnsEnabled = true;
   static TaskHandle msgTask = NULL;
-  autonState = rectify(autonState, -1, 4);
   switch (autonState) {
     case -1:
       lcdSet("To Sensors", "");
       if(isNewPress(lcdMid)) sysState = 1;
       break;
-    // case 0: // Whole auton
-    //   lcdSet(1, "Drive Distance");
-    //   lcdPrint(uart1, 2, "%f", distance);
-    //   if(isPressed(btn7r)) distance+=0.1;
-    //   else if(isPressed(btn7l)) distance-=0.1;
-    //   else if(isNewPress(btn7u)) distance++;
-    //   else if(isNewPress(btn7d)) distance--;
-    //   break;
     case 0:
+      lcdSet(1, "Run Auton");
+      if(autonBtnsEnabled) {
+        lcdSet(2, "Buttons Enabled");
+        if(isPressed(btn7l)){
+          firstBase();
+        }
+        else if(isPressed(btn7r)){
+          launchFirstBase();
+        }
+        else if(isPressed(btn7d)){
+          firstBase();
+          launchFirstBase();
+        }
+      }
+      else lcdSet(2, "Buttons Disabled");
+      // if(isPressed(btn5d) && isPressed(btn6d)){
+      //   autonBtnsEnabled = !autonBtnsEnabled;
+      //   delay(500);
+      // }
+      break;
+    case 1:
       lcdSet(1, "Count 5s");
       if(!msgTaskRunning){
         lcdSet(2, "");
@@ -130,7 +143,7 @@ void autonSelect(){
         }
       }
       break;
-    case 1:
+    case 2:
       lcdSet(1, "Wait 5s");
       if(!msgTaskRunning){
         lcdSet(2, "");
@@ -146,56 +159,15 @@ void autonSelect(){
         }
       }
       break;
-    case 2:
-      lcdSet(1, "Mutex Pause");
-      if(!msgTaskRunning){
-        lcdSet(2, "");
-        if(isNewPress(lcdMid)){
-          msgTask = taskCreate(waitMsg, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
-          msgTaskRunning = true;
-        }
-      }
-      else{
-        if(isNewPress(lcdLeft) || isNewPress(lcdRight)){
-          if(msgTask != NULL) taskDelete(msgTask);
-          msgTaskRunning = false;
-        }
-        if(isNewPress(lcdMid)){
-          mutexTake(runMsg, 5);
-        }
-        if(isNewRelease(lcdMid)){
-          mutexGive(runMsg);
-        }
-      }
-      break;
-    case 3:
-      lcdSet(1, "Semaphore Step");
-      if(!msgTaskRunning){
-        lcdSet(2, "");
-        if(isNewPress(lcdMid)){
-          msgTask = taskCreate(msgPause, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
-          msgTaskRunning = true;
-        }
-      }
-      else{
-        if(isPressed(lcdRight)){
-          semaphoreGive(btnSem);
-        }
-        if(isNewPress(lcdMid)){
-          taskDelete(msgTask);
-          msgTaskRunning = false;
-        }
-      }
-      break;
     default:
-      autonState = 0;
+      if(autonState > 0) autonState--;
+      else if(autonState < 0) autonState++;
   }
   if(isNewPress(lcdMid)) sysState = 1;
 }
 
 void sensorView(){
   lcdPrint(uart1, 1, "Sensors %d", sensorIndex);
-  sensorIndex = rectify(sensorIndex, -3, 4);
   static int accMax = 0;
   switch (sensorIndex) {
     case -3:
@@ -210,6 +182,10 @@ void sensorView(){
       if(isNewPress(lcdMid)) sysState = 0;
       break;
     case 0:
+      lcdPrint(uart1, 1, "Line Readers");
+      lcdPrint(uart1, 2, "L %d R %d", analogRead(lineLeft), analogRead(lineRight));
+      break;
+    case 1:
       lcdPrint(uart1, 2, "Gyro %d", gyroGet(gyro));
       if(isPressed(lcdMid)) gyroReset(gyro);
       if(isNewPress(btn7l)){
@@ -221,33 +197,38 @@ void sensorView(){
       if(isPressed(btn8r)) driveTurnDeg(90);
       if(isPressed(btn7r)) driveTurnDeg(180);
       break;
-    case 1:
+    case 2:
       lcdPrint(uart1, 2, "L %d R %d", encoderGet(leftEnc), encoderGet(rightEnc));
       if(isPressed(lcdMid)){
         encoderReset(leftEnc);
         encoderReset(rightEnc);
       }
       break;
-    case 2:
+    case 3:
       lcdPrint(uart1, 2, "T %d Ft %f", encoderGet(leftEnc), ticksToFeetLeft(encoderGet(leftEnc)));
       if(isPressed(lcdMid)){
         encoderReset(leftEnc);
         encoderReset(rightEnc);
       }
       break;
-    case 3:
+    case 4:
       lcdPrint(uart1, 2, "T %d Ft %f", encoderGet(rightEnc), ticksToFeetLeft(encoderGet(rightEnc)));
       if(isPressed(lcdMid)){
         encoderReset(leftEnc);
         encoderReset(rightEnc);
       }
       break;
-    case 4:
-      int acc = getAccel();
+    case 5:
+      int acc;
+      acc = getAccel();
       lcdPrint(uart1, 2, "C %d M %d", acc, accMax);
       if(abs(acc) > abs(accMax)) accMax = acc;
       if(isPressed(lcdMid)) accMax = 0;
       break;
+
+    default:
+      if(sensorIndex > 0) sensorIndex--;
+      else if(sensorIndex < 0) sensorIndex++;
   }
 }
 

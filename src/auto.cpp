@@ -13,7 +13,7 @@
 #include "main.h"
 
 // void firstBase();
-void launchFirstBase();
+// void launchFirstBase();
 void firstTraverse();
 
 void autonomous() {
@@ -32,18 +32,45 @@ void firstBase(){
   frontGrabSet(false);
   gateSet(true);
   driveDist(4, 't');
-  smartGrabFront(40);
-  gateSet(false);
-  delay(700);
-  driveWait(-0.25, -50, -50);
-  driveWait(-0.5, -70, -70);
-  driveSetImm(0, 0);
   delay(200);
-  driveTurnDeg(-53);
+  smartGrabFront(60);
+  delay(300);
+  stopOnLine(-2.5);
+  driveStop();
+  // delay(200);
+  // driveTurnDeg(-65);
+  // driveWaitRamp(-0.5, -70, 10);
+  // driveDist(-1.75);
+  // delay(300);
+  // smartGrabBack(-40);
+  // delay(200);
+  // driveTurnDeg(-85);
 }
 
 void launchFirstBase(){
-
+  bool done = false;
+  while(!done){
+    driveSet(127, 127);
+    if(isOverLine()) {
+      encoderReset(leftEnc);
+      while(encoderGet(leftEnc) < launchDelay){
+        delay(10);
+      }
+      punchSet(true);
+      done = true;
+    }
+    delay(20);
+  }
+  // driveTime(300, -127);
+  driveStop();
+  delay(50);
+  driveTime(600, -127);
+  punchSet(false);
+  stopOnLine(-0.5);
+  delay(500);
+  frontGrabSet(false);
+  driveStop();
+  delay(300);
 }
 
 void firstTraverse(){
