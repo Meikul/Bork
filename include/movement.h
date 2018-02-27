@@ -14,6 +14,7 @@ void mset(int port, int speed, int slew);
  * @param right speed of right
  */
 void driveSet(int left, int right);
+void driveSetBoth(int speed);
 void driveSetRamp(int left, int right, int slew);
 void driveSetImm(int left, int right);
 void driveSetNoLin(int left, int right);
@@ -28,6 +29,8 @@ int rectify(int value, int lowerLimit, int upperLimit);
 int rectify(int value);
 bool isDrivingForward();
 int getAccel();
+void resetGyro();
+int getGyro();
 bool isOverBase(int port);
 bool isOverLine(int port);
 bool isOverLine();

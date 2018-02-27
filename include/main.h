@@ -30,6 +30,7 @@
 #include "buttons.h"
 #include "lcdMenu.h"
 #include "smart.h"
+#include "Controller.h"
 
 // Allow usage of this file in C++ programs
 #ifdef __cplusplus
@@ -119,6 +120,7 @@ void operatorControl();
 #define dl5 7
 
 // Solenoids
+#define claw 8
 #define frontGrab 9
 #define baseGate 10
 #define backGrab 11
@@ -143,7 +145,7 @@ void operatorControl();
 
 
 void firstBase();
-void launchFirstBase();
+void cornerLaunch();
 
 
 // Global variables

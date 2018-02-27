@@ -13,41 +13,43 @@
 #include "main.h"
 
 // void firstBase();
-// void launchFirstBase();
+// void cornerLaunch();
 void firstTraverse();
 
 void autonomous() {
-  switch(autonState){
-    case 0:
-      firstBase();
-      break;
-    case 1:
-      launchFirstBase();
-    case 2:
-      firstTraverse();
-  }
+  firstBase();
+  cornerLaunch();
+  firstTraverse();
+  cornerLaunch();
 }
 
 void firstBase(){
   frontGrabSet(false);
   gateSet(true);
-  driveDist(4, 't');
-  delay(200);
+  resetGyro();
+  driveDist(4.0, 't');
   smartGrabFront(60);
+  driveTurnDeg(-5-getGyro());
+  resetGyro();
+  while(isOverLine()){ //back off of tile
+    driveSet(-127, -127);
+    delay(20);
+  }
+  delay(100);
+  driveToLine(-110);
+  driveDist(-1.5, 's');
+  driveTurnDeg(-86-getGyro());
+  resetGyro();
+  backGrabSet(false);
+  driveDist(-1.75);
   delay(300);
-  stopOnLine(-2.5);
-  driveStop();
-  // delay(200);
-  // driveTurnDeg(-65);
-  // driveWaitRamp(-0.5, -70, 10);
-  // driveDist(-1.75);
-  // delay(300);
-  // smartGrabBack(-40);
-  // delay(200);
-  // driveTurnDeg(-85);
+  smartGrabBack(-60);
+  delay(200);
+  driveTurnDeg(-63-getGyro());
 }
 
-void launchFirstBase(){
+void cornerLaunch(){
+  driveWait(1.5, 127);
   bool done = false;
   while(!done){
     driveSet(127, 127);
@@ -59,20 +61,46 @@ void launchFirstBase(){
       punchSet(true);
       done = true;
     }
-    delay(20);
+    delay(10);
   }
-  // driveTime(300, -127);
   driveStop();
-  delay(50);
-  driveTime(600, -127);
+  delay(200);
+  driveTime(400, -60);
   punchSet(false);
-  stopOnLine(-0.5);
-  delay(500);
+  backGrabSet(false);
+  frontGrabSet(false);
+  driveWait(-0.15, -100);
+  driveStop();
+  delay(200);
+  smartGrabFront(-60);
+  delay(400);
+  digitalWrite(claw, true);
+  driveToLine(100);
+  driveWait(0.25, 100);
+  punchSet(true);
+  stopOnLine(-0.3);
+  punchSet(false);
   frontGrabSet(false);
   driveStop();
-  delay(300);
+}
+
+void firstCorner(){
+  gateSet(true);
+
 }
 
 void firstTraverse(){
+  driveTurnDeg(180);
+  driveDist(2.0);
+  smartGrabFront(40);
+  driveWait(1, 60);
+  driveStop();
+  delay(400);
+  driveTurnDeg(20);
+}
+
+void backOverFront(){
+  backGrabSet(false);
+  frontGrabSet(false);
 
 }

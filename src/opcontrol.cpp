@@ -110,6 +110,8 @@ void operatorControl() {
 			}
 		}
 
+		if(isNewPress(btn8l)) digitalWrite(claw, !digitalRead(claw));
+
 		if(!isPressed(btn6u)) watchingFront = false;
 		if(!isPressed(btn6d)) watchingBack = false;
 
@@ -152,7 +154,7 @@ void operatorControl() {
 		}
 		lcdControl(NULL);
 
-		delay(20);
+		delay(18);
 	}
 	// taskDelete(lcdMenu);
 }

@@ -5,7 +5,9 @@
 
 extern Semaphore isDoneDriving;
 
-void driveStraight(int speed);
+void driveStraight(double feet, int speed);
+
+void driveStraight(double feet, int speed, int ramp);
 
 void driveDist(double feet);
 
@@ -16,6 +18,8 @@ void driveDist(double feet, int slew, char stopOnCode);
 void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRight);
 
 void driveDistSync(double feet);
+
+void driveWaitTicks(int ticks, int power);
 
 void driveWait(double feet, int power);
 
@@ -42,5 +46,7 @@ void stopOnLine(double feet, int slew);
 void stopOnLineBlind(int speed, int slew);
 
 void stopOnLineBlind(int speed);
+
+void driveToLine(int speed);
 
 #endif

@@ -1,4 +1,5 @@
 #include "main.h"
+
 #include <math.h>
 
 TaskHandle drivingTask;
@@ -72,21 +73,20 @@ int driveTargetRight = 0;
 int driveTargetLeft = 0;
 
 void driveTurnDeg(int degrees){
-  // drivingTask = taskCreate(drivePid, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
   driveTurnPid(5.5, 0.0, 20.0, degrees, 127);
 }
 
 void driveTurnPid(double kp, double ki, double kd, int target, int slew){
   bool done = false;
   double integ = 0;
-  gyroReset(gyro);
-  int error = target - gyroGet(gyro);
+  resetGyro();
+  int error = target - getGyro();
   int prevError = error;
   int stoppedCycles = 0;
   int capInteg = 127 / ki;
   while(!done && !isNewPress(btn8r)){
 
-    error = target - gyroGet(gyro);
+    error = target - getGyro();
 
     int deltaError = (error - prevError);
 
@@ -113,7 +113,7 @@ void driveTurnPid(double kp, double ki, double kd, int target, int slew){
       done = true;
       driveSet(0, 0);
     }
-    lcdPrint(uart1, 1, "Tar %d Val %d", target, gyroGet(gyro));
+    lcdPrint(uart1, 1, "Tar %d Val %d", target, getGyro());
     lcdPrint(uart1, 2, "Err %d Pwr %d", error, pwr);
     delay(20);
   }
@@ -177,20 +177,20 @@ void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRig
     bool errLIsNeg = (errorL < 0);
     bool errRIsNeg = (errorR < 0);
 
-    if(abs(deltaErrorL) < 2 && abs(deltaErrorR) < 2){
+    if(abs(deltaErrorL) < 4 && abs(deltaErrorR) < 4){
       stoppedCycles++;
     }
     else{
       stoppedCycles = 0;
     }
     if(drivePidStopOn == 's'){ // Robot Stopped
-      if(stoppedCycles > 10){
+      if(stoppedCycles > 7){
         done = true;
         driveStop();
       }
     }
     else if(drivePidStopOn == 't'){ // Target reached
-      if(errLIsNeg != initErrLIsNeg || errRIsNeg != initErrRIsNeg){
+      if(errLIsNeg != initErrLIsNeg || errRIsNeg != initErrRIsNeg || stoppedCycles > 20){
         done = true;
         driveStop();
       }
@@ -310,10 +310,32 @@ void driveWaitRamp(double feet, int leftPwr, int rightPwr, int slew){
   int prevEncR = encoderGet(rightEnc);
   int encR = encoderGet(rightEnc);
   int counts = 0;
-  while(abs(encL) < abs(targetTicks) && counts < 20){
+  while(abs(encL) < abs(targetTicks) && counts < 15){
     encL = encoderGet(leftEnc);
     encR = encoderGet(rightEnc);
     driveSetRamp(leftPwr, rightPwr, slew);
+    lcdPrint(uart1, 1, "T %d C %d", encL, counts);
+    lcdPrint(uart1, 2, "D %d M %d", (encL-prevEncL), motorGet(dr1));
+    if((abs(encL - prevEncL) < 5 || abs(encR - prevEncR) < 5)) counts++;
+    else counts = 0;
+    prevEncL = encL;
+    prevEncR = encR;
+    delay(20);
+  }
+}
+
+void driveWaitTicks(int ticks, int speed){
+  encoderReset(rightEnc);
+  encoderReset(leftEnc);
+  int prevEncL = encoderGet(leftEnc);
+  int encL = encoderGet(leftEnc);
+  int prevEncR = encoderGet(rightEnc);
+  int encR = encoderGet(rightEnc);
+  int counts = 0;
+  while(abs(encL) < abs(ticks) && counts < 15){
+    encL = encoderGet(leftEnc);
+    encR = encoderGet(rightEnc);
+    driveSetRamp(speed, speed, DEFAULT_SLEW);
     lcdPrint(uart1, 1, "T %d C %d", encL, counts);
     lcdPrint(uart1, 2, "D %d M %d", (encL-prevEncL), motorGet(dr1));
     if((abs(encL - prevEncL) < 5 || abs(encR - prevEncR) < 5)) counts++;
@@ -355,7 +377,8 @@ void smartGrabFront(int power){
       encoderReset(rightEnc);
       while(!done){
         driveSet(power, power);
-        if(encoderGet(leftEnc) > (100 - power)) done = true;
+        int enc = encoderGet(leftEnc);
+        if(enc > 90 || enc < -10) done = true;
         delay(20);
       }
     }
@@ -364,7 +387,6 @@ void smartGrabFront(int power){
   }
   gateSet(false);
   driveStop();
-  delay(100);
   frontGrabSet(true);
 }
 
@@ -456,7 +478,52 @@ void lineUp(double feet){
       }
     }
     else if(!isOverLine(lineLeft) && isOverLine(lineRight)){
-
+      Controller pid(0.5, 0.0, 0.9);
     }
+  }
+}
+
+void driveToLine(int speed){
+  int timeout = 0;
+  while(!isOverLine() && timeout < 250){
+    driveSet(speed, speed);
+    timeout++;
+    delay(10);
+  }
+}
+
+void driveStraight(double feet, int speed){
+  driveStraight(feet, speed, DEFAULT_SLEW);
+}
+
+void idk(double feet){
+  Controller pid(0.3, 0, 0.9);
+  void* gyroPtr = &gyro;
+  pid.startTask(getGyro, driveSetBoth, 300);
+  delay(5000);
+}
+
+void driveStraight(double feet, int speed, int ramp){
+  encoderReset(leftEnc);
+  encoderReset(rightEnc);
+  resetGyro();
+  int target = feetToTicksLeft(feet);
+  bool goingForward = encoderGet(leftEnc) < target;
+  bool prevGoingForward = goingForward;
+  bool targetPassed = false;
+  Controller pid(5.0, 0.0, 10.0);
+
+  while(targetPassed){
+    goingForward = encoderGet(leftEnc) < target;
+    targetPassed = goingForward != prevGoingForward;
+
+    int error = getGyro();
+    int adjustment = pid.get(error);
+
+    if(adjustment < 0) driveSet(speed, speed+adjustment);
+    else driveSet(speed-adjustment, speed);
+
+    prevGoingForward = goingForward;
+    delay(20);
   }
 }

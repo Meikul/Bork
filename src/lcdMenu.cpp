@@ -114,11 +114,11 @@ void autonSelect(){
           firstBase();
         }
         else if(isPressed(btn7r)){
-          launchFirstBase();
+          cornerLaunch();
         }
         else if(isPressed(btn7d)){
           firstBase();
-          launchFirstBase();
+          cornerLaunch();
         }
       }
       else lcdSet(2, "Buttons Disabled");
@@ -128,6 +128,9 @@ void autonSelect(){
       // }
       break;
     case 1:
+      lcdPrint(uart1, 2, "overLine %d", isOverLine());
+      break;
+    case 2:
       lcdSet(1, "Count 5s");
       if(!msgTaskRunning){
         lcdSet(2, "");
@@ -143,7 +146,7 @@ void autonSelect(){
         }
       }
       break;
-    case 2:
+    case 3:
       lcdSet(1, "Wait 5s");
       if(!msgTaskRunning){
         lcdSet(2, "");
@@ -186,8 +189,8 @@ void sensorView(){
       lcdPrint(uart1, 2, "L %d R %d", analogRead(lineLeft), analogRead(lineRight));
       break;
     case 1:
-      lcdPrint(uart1, 2, "Gyro %d", gyroGet(gyro));
-      if(isPressed(lcdMid)) gyroReset(gyro);
+      lcdPrint(uart1, 2, "Gyro %d", getGyro());
+      if(isPressed(lcdMid)) resetGyro();
       if(isNewPress(btn7l)){
         gyroShutdown(gyro);
         delay(100);
