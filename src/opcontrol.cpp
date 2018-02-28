@@ -152,9 +152,18 @@ void operatorControl() {
 				watchingFront = false;
 			}
 		}
-		lcdControl(NULL);
 
-		delay(18);
+		if(isPressed(btn7l)){
+			firstBase();
+		}
+		else if(isPressed(btn7r)){
+			cornerLaunch();
+		}
+		else if(isPressed(btn7d)){
+			firstCorner();
+		}
+		lcdControl(NULL);
+		delay(20);
 	}
 	// taskDelete(lcdMenu);
 }

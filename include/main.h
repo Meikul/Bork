@@ -146,6 +146,7 @@ void operatorControl();
 
 void firstBase();
 void cornerLaunch();
+void firstCorner();
 
 
 // Global variables

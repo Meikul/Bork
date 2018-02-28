@@ -117,8 +117,7 @@ void autonSelect(){
           cornerLaunch();
         }
         else if(isPressed(btn7d)){
-          firstBase();
-          cornerLaunch();
+          firstCorner();
         }
       }
       else lcdSet(2, "Buttons Disabled");

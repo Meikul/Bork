@@ -85,8 +85,12 @@ void cornerLaunch(){
 }
 
 void firstCorner(){
+  delay(300);
   gateSet(true);
-
+  driveTurnDeg(-90);
+  driveDist(2.15, 's');
+  driveTurnDeg(-45);
+  driveStop();
 }
 
 void firstTraverse(){

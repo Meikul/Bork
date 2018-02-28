@@ -73,6 +73,7 @@ int driveTargetRight = 0;
 int driveTargetLeft = 0;
 
 void driveTurnDeg(int degrees){
+  drivePidStopOn = 's';
   driveTurnPid(5.5, 0.0, 20.0, degrees, 127);
 }
 
@@ -496,12 +497,11 @@ void driveStraight(double feet, int speed){
   driveStraight(feet, speed, DEFAULT_SLEW);
 }
 
-void idk(double feet){
-  Controller pid(0.3, 0, 0.9);
-  void* gyroPtr = &gyro;
-  pid.startTask(getGyro, driveSetBoth, 300);
-  delay(5000);
-}
+// void idk(double feet){
+//   Controller pid(0.3, 0, 0.9);
+//   pid.startTask(getGyro, driveSetBoth, 300);
+//   delay(5000);
+// }
 
 void driveStraight(double feet, int speed, int ramp){
   encoderReset(leftEnc);
