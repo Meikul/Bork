@@ -98,8 +98,6 @@ void pidTune(){
 }
 
 void autonSelect(){
-  static unsigned long lastMillis = 0;
-  static unsigned long lastMicros = 0;
   static bool msgTaskRunning = false;
   static bool autonBtnsEnabled = true;
   static TaskHandle msgTask = NULL;
@@ -109,9 +107,9 @@ void autonSelect(){
       if(isNewPress(lcdMid)) sysState = 1;
       break;
     case 0:
-      lcdPrint(uart1, 1, "Auton %u", (millis() - lastMillis));
+      lcdSet(1, "Run Auton");
       if(autonBtnsEnabled) {
-        lcdPrint(uart1, 2, "Micro %u", (micros() - lastMicros));
+        lcdSet(2, "Enabled");
         if(isPressed(btn7l)){
           firstBase();
         }
@@ -168,8 +166,6 @@ void autonSelect(){
       if(autonState > 0) autonState--;
       else if(autonState < 0) autonState++;
   }
-  lastMicros = micros();
-  lastMillis = millis();
   if(isNewPress(lcdMid)) sysState = 1;
 }
 

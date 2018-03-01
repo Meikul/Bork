@@ -98,7 +98,8 @@ void firstCorner(){
   smartGrabFront(-40);
   driveSetImm(100, 100);
   delay(500);
-  while(isOverLine()){ //back off of tile
+  if(!isOverLine()) driveToLine(127);
+  while(isOverLine()){
     driveSet(127, 127);
     delay(20);
   }
