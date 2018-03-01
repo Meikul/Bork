@@ -163,6 +163,7 @@ void operatorControl() {
 			firstCorner();
 		}
 		lcdControl(NULL);
+
 		delay(20);
 	}
 	// taskDelete(lcdMenu);

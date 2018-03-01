@@ -133,6 +133,12 @@ void driveSet(int left, int right){
   mset(dl5, -left);
 }
 
+unsigned int getProx(){
+  unsigned int val = ultrasonicGet(prox);
+  return (val * 0.393701);
+
+}
+
 void driveSetImm(int left, int right){
   left = linSpeed(left);
   right = linSpeed(right);

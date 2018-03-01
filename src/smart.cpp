@@ -479,7 +479,6 @@ void lineUp(double feet){
       }
     }
     else if(!isOverLine(lineLeft) && isOverLine(lineRight)){
-      Controller pid(0.5, 0.0, 0.9);
     }
   }
 }
@@ -503,27 +502,27 @@ void driveStraight(double feet, int speed){
 //   delay(5000);
 // }
 
-void driveStraight(double feet, int speed, int ramp){
-  encoderReset(leftEnc);
-  encoderReset(rightEnc);
-  resetGyro();
-  int target = feetToTicksLeft(feet);
-  bool goingForward = encoderGet(leftEnc) < target;
-  bool prevGoingForward = goingForward;
-  bool targetPassed = false;
-  Controller pid(5.0, 0.0, 10.0);
-
-  while(targetPassed){
-    goingForward = encoderGet(leftEnc) < target;
-    targetPassed = goingForward != prevGoingForward;
-
-    int error = getGyro();
-    int adjustment = pid.get(error);
-
-    if(adjustment < 0) driveSet(speed, speed+adjustment);
-    else driveSet(speed-adjustment, speed);
-
-    prevGoingForward = goingForward;
-    delay(20);
-  }
-}
+// void driveStraight(double feet, int speed, int ramp){
+//   encoderReset(leftEnc);
+//   encoderReset(rightEnc);
+//   resetGyro();
+//   int target = feetToTicksLeft(feet);
+//   bool goingForward = encoderGet(leftEnc) < target;
+//   bool prevGoingForward = goingForward;
+//   bool targetPassed = false;
+//   Controller pid(5.0, 0.0, 10.0);
+//
+//   while(targetPassed){
+//     goingForward = encoderGet(leftEnc) < target;
+//     targetPassed = goingForward != prevGoingForward;
+//
+//     int error = getGyro();
+//     int adjustment = pid.get(error);
+//
+//     if(adjustment < 0) driveSet(speed, speed+adjustment);
+//     else driveSet(speed-adjustment, speed);
+//
+//     prevGoingForward = goingForward;
+//     delay(20);
+//   }
+// }

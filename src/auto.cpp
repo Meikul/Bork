@@ -12,6 +12,8 @@
 
 #include "main.h"
 
+#include <math.h>
+
 // void firstBase();
 // void cornerLaunch();
 void firstTraverse();
@@ -85,12 +87,27 @@ void cornerLaunch(){
 }
 
 void firstCorner(){
-  delay(300);
-  gateSet(true);
-  driveTurnDeg(-90);
-  driveDist(2.15, 's');
+  unsigned int wallDist = getProx();
+  const double fullHypo = 68.0;
+  double curHypo = sqrt(2 * (wallDist * wallDist));
+  double dist = (fullHypo - curHypo) / 12.0;
+  driveTurnDeg(90);
+  driveDist(-dist, 't');
   driveTurnDeg(-45);
+  driveDist(-3.5);
+  smartGrabFront(-40);
+  driveSetImm(100, 100);
+  delay(500);
+  while(isOverLine()){ //back off of tile
+    driveSet(127, 127);
+    delay(20);
+  }
+  driveToLine(127);
+  driveDist(2.5, 't');
   driveStop();
+  punchSet(true);
+  delay(500);
+  punchSet(false);
 }
 
 void firstTraverse(){

@@ -35,5 +35,6 @@ bool isOverBase(int port);
 bool isOverLine(int port);
 bool isOverLine();
 void driveStop();
+unsigned int getProx();
 
 #endif

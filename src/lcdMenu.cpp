@@ -98,6 +98,8 @@ void pidTune(){
 }
 
 void autonSelect(){
+  static unsigned long lastMillis = 0;
+  static unsigned long lastMicros = 0;
   static bool msgTaskRunning = false;
   static bool autonBtnsEnabled = true;
   static TaskHandle msgTask = NULL;
@@ -107,9 +109,9 @@ void autonSelect(){
       if(isNewPress(lcdMid)) sysState = 1;
       break;
     case 0:
-      lcdSet(1, "Run Auton");
+      lcdPrint(uart1, 1, "Auton %u", (millis() - lastMillis));
       if(autonBtnsEnabled) {
-        lcdSet(2, "Buttons Enabled");
+        lcdPrint(uart1, 2, "Micro %u", (micros() - lastMicros));
         if(isPressed(btn7l)){
           firstBase();
         }
@@ -129,6 +131,7 @@ void autonSelect(){
     case 1:
       lcdPrint(uart1, 2, "overLine %d", isOverLine());
       break;
+
     case 2:
       lcdSet(1, "Count 5s");
       if(!msgTaskRunning){
@@ -165,6 +168,8 @@ void autonSelect(){
       if(autonState > 0) autonState--;
       else if(autonState < 0) autonState++;
   }
+  lastMicros = micros();
+  lastMillis = millis();
   if(isNewPress(lcdMid)) sysState = 1;
 }
 

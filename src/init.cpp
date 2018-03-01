@@ -16,6 +16,7 @@
 Encoder rightEnc;
 Encoder leftEnc;
 Gyro gyro;
+Ultrasonic prox;
 
 
 /*
@@ -45,4 +46,5 @@ void initialize() {
   rightEnc = encoderInit(dre1, dre2, true);
   leftEnc = encoderInit(dle1, dle2, false);
   gyro = gyroInit(gyroPort, 0);
+  prox = ultrasonicInit(sonicOutput, sonicInput);
 }

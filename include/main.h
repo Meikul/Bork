@@ -30,7 +30,6 @@
 #include "buttons.h"
 #include "lcdMenu.h"
 #include "smart.h"
-#include "Controller.h"
 
 // Allow usage of this file in C++ programs
 #ifdef __cplusplus
@@ -127,11 +126,12 @@ void operatorControl();
 #define shooter 12
 
 // Sensors
-#define launchSwitch 1
+#define sonicInput 2
 #define dle1 3
 #define dle2 4
 #define dre1 5
 #define dre2 6
+#define sonicOutput 7
 
 #define backLight 1
 #define accel 7
@@ -153,6 +153,7 @@ void firstCorner();
 extern Encoder rightEnc;
 extern Encoder leftEnc;
 extern Gyro gyro;
+extern Ultrasonic prox;
 
 // End C++ export structure
 #ifdef __cplusplus
