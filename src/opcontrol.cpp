@@ -162,6 +162,9 @@ void operatorControl() {
 		else if(isPressed(btn7d)){
 			firstCorner();
 		}
+		else if(isPressed(btn8r)){
+			lineUp(-80);
+		}
 		lcdControl(NULL);
 
 		delay(20);

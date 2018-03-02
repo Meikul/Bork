@@ -1,13 +1,13 @@
 #include "main.h"
 
-#include <math.h>
-
 TaskHandle drivingTask;
 
 void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRight, int slew);
-void driveTurnPid(double kp, double ki, double kd, int target, int slew);
+void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int maxRight);
 bool isMoving();
 bool isMoving(int milWait);
+void rightHoldTask(void * args);
+void leftHoldTask(void * args);
 
 char drivePidStopOn = 's';
 bool killDrivePid = false;
@@ -73,11 +73,16 @@ int driveTargetRight = 0;
 int driveTargetLeft = 0;
 
 void driveTurnDeg(int degrees){
-  drivePidStopOn = 's';
-  driveTurnPid(5.5, 0.0, 20.0, degrees, 127);
+  driveTurnPid(5.5, 0.0, 20.0, degrees, 127, 127);
 }
 
-void driveTurnPid(double kp, double ki, double kd, int target, int slew){
+void driveTurnDeg(int degrees, int maxLeft, int maxRight){
+  maxLeft = abs(maxLeft);
+  maxRight = abs(maxRight);
+  driveTurnPid(5.5, 0.0, 20.0, degrees, maxLeft, maxRight);
+}
+
+void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int maxRight){
   bool done = false;
   double integ = 0;
   resetGyro();
@@ -102,17 +107,25 @@ void driveTurnPid(double kp, double ki, double kd, int target, int slew){
     int pwr = (error * kp) + (integ * ki) + (deltaError * kd);
 
     pwr = rectify(pwr, -100, 100);
-    driveSetRamp(-pwr, pwr, slew);
+
+    int pwrL = rectify(pwr, -maxLeft, maxLeft);
+    int pwrR = rectify(pwr, -maxRight, maxRight);
+
+    driveSetRamp(-pwrL, pwrR, 127);
     prevError = error;
-    if(abs(deltaError) < 1 && abs(error) < 5){
+    if(abs(deltaError) < 2){
       stoppedCycles++;
     }
     else{
       stoppedCycles = 0;
     }
-    if(stoppedCycles > 15){
+    if(abs(error) < 5){
+      if(stoppedCycles > 7){
+        done = true;
+      }
+    }
+    else if(stoppedCycles > 20){ // give up for burnout
       done = true;
-      driveSet(0, 0);
     }
     lcdPrint(uart1, 1, "Tar %d Val %d", target, getGyro());
     lcdPrint(uart1, 2, "Err %d Pwr %d", error, pwr);
@@ -288,14 +301,14 @@ void driveDist(double feet, int slew, char stopOnCode){
   int targetRight = feetToTicksRight(feet);
   int targetLeft = feetToTicksLeft(feet);
   drivePidStopOn = stopOnCode;
-  drivePidArgs(0.3, 0.0, 1.0, targetLeft, targetRight, slew);
+  drivePidArgs(0.3, 0.0, 1.2, targetLeft, targetRight, slew);
 }
 
 void driveDist(double feet, char stopOnCode){
   int targetRight = feetToTicksRight(feet);
   int targetLeft = feetToTicksLeft(feet);
   drivePidStopOn = stopOnCode;
-  drivePidArgs(0.3, 0.0, 1.0, targetLeft, targetRight);
+  drivePidArgs(0.3, 0.0, 1.2, targetLeft, targetRight);
 }
 
 void driveDist(double feet){
@@ -315,7 +328,7 @@ void driveWaitRamp(double feet, int leftPwr, int rightPwr, int slew){
     encL = encoderGet(leftEnc);
     encR = encoderGet(rightEnc);
     driveSetRamp(leftPwr, rightPwr, slew);
-    lcdPrint(uart1, 1, "T %d C %d", encL, counts);
+    lcdPrint(uart1, 2, "T %d C %d", encL, counts);
     lcdPrint(uart1, 2, "D %d M %d", (encL-prevEncL), motorGet(dr1));
     if((abs(encL - prevEncL) < 5 || abs(encR - prevEncR) < 5)) counts++;
     else counts = 0;
@@ -348,7 +361,7 @@ void driveWaitTicks(int ticks, int speed){
 }
 
 void driveWait(double feet, int leftPwr, int rightPwr){
-  driveWaitRamp(feet, leftPwr, rightPwr, 30);
+  driveWaitRamp(feet, leftPwr, rightPwr, DEFAULT_SLEW);
 }
 
 void driveWait(double feet, int power){
@@ -379,7 +392,8 @@ void smartGrabFront(int power){
       while(!done){
         driveSet(power, power);
         int enc = encoderGet(leftEnc);
-        if(enc > 90 || enc < -10) done = true;
+        if(gateGet() && (enc > 90 || enc < -10)) done = true;
+        else if(!gateGet() && (enc > 80 || enc < -10)) done = true;
         delay(20);
       }
     }
@@ -402,7 +416,8 @@ void smartGrabBack(int power){
       encoderReset(rightEnc);
       while(!done){
         driveSet(power, power);
-        if(encoderGet(leftEnc) < (-110 - power) || power > 0) done = true;
+        if(power >= 0 && encoderGet(leftEnc) > (30)) done = true;
+        else if(power < 0 && encoderGet(leftEnc) < (-90 - power)) done = true;
         delay(20);
       }
     }
@@ -410,7 +425,7 @@ void smartGrabBack(int power){
     delay(20);
   }
   backGrabSet(true);
-  driveSetImm(0, 0);
+  driveStop();
 }
 
 
@@ -492,14 +507,143 @@ void driveToLine(int speed){
   }
 }
 
-void driveStraight(double feet, int speed){
-  driveStraight(feet, speed, DEFAULT_SLEW);
+bool rightHoldDone = false;
+
+TaskHandle driveHoldRight(){
+  rightHoldDone = false;
+  double gainsArr[2] = {10.0, 20.0};
+  TaskHandle task = taskCreate(rightHoldTask, TASK_DEFAULT_STACK_SIZE, gainsArr, TASK_PRIORITY_DEFAULT);
+  return task;
+}
+
+void rightHoldTask(void* argsPtr){
+  double* gains = (double *)argsPtr;
+  double kp = gains[0];
+  double kd = gains[1];
+  encoderReset(rightEnc);
+  int error = 0;
+  int prevError = error;
+  int stoppedCycles = 0;
+  while(true){
+
+    error = -encoderGet(rightEnc);
+
+    int deltaError = (error - prevError);
+
+    int pwr = (error * kp) + (deltaError * kd);
+
+    pwr = rectify(pwr);
+
+    driveSetRight(pwr);
+
+    if(abs(deltaError) < 2){
+      stoppedCycles++;
+    }
+    else{
+      stoppedCycles = 0;
+    }
+    if(abs(error) < 5){
+      if(stoppedCycles > 7){
+        rightHoldDone = true;
+      }
+    }
+    else if(stoppedCycles > 100){
+      rightHoldDone = true;
+    }
+
+    prevError = error;
+
+    delay(20);
+  }
+}
+
+bool leftHoldDone = false;
+
+TaskHandle driveHoldLeft(){
+  leftHoldDone = false;
+  double gainsArr[2] = {10.0, 20.0};
+  TaskHandle task = taskCreate(leftHoldTask, TASK_DEFAULT_STACK_SIZE, gainsArr, TASK_PRIORITY_DEFAULT);
+  return task;
+}
+
+void leftHoldTask(void* argsPtr){
+  double* gains = (double *)argsPtr;
+  double kp = gains[0];
+  double kd = gains[1];
+  encoderReset(leftEnc);
+  int error = 0;
+  int prevError = error;
+  int stoppedCycles = 0;
+  while(true){
+
+    error = -encoderGet(leftEnc);
+
+    int deltaError = (error - prevError);
+
+    int pwr = (error * kp) + (deltaError * kd);
+
+    pwr = rectify(pwr);
+
+    driveSetLeft(pwr);
+
+    if(abs(deltaError) < 2){
+      stoppedCycles++;
+    }
+    else{
+      stoppedCycles = 0;
+    }
+    if(abs(error) < 4){
+      if(stoppedCycles > 7){
+        leftHoldDone = true;
+      }
+    }
+    else if(stoppedCycles > 100){
+      leftHoldDone = true;
+    }
+
+    prevError = error;
+
+    delay(20);
+  }
+}
+
+void lineUp(int speed){
+  while(!isOverLine()){
+    driveSet(speed, speed);
+    delay(20);
+  }
+  TaskHandle leftTask;
+  TaskHandle rightTask;
+  if(isOverLine(lineLeft)){
+    leftTask = driveHoldLeft();
+    while(!isOverLine(lineRight)){
+      delay(20);
+    }
+    rightTask = driveHoldRight();
+  }
+  else {
+    rightTask = driveHoldRight();
+    while(!isOverLine(lineLeft)){
+      delay(20);
+    }
+    leftTask = driveHoldLeft();
+  }
+  while(!leftHoldDone || !rightHoldDone){
+    delay(40);
+  }
+  taskDelete(leftTask);
+  taskDelete(rightTask);
+  driveStop();
 }
 
 // void idk(double feet){
 //   Controller pid(0.3, 0, 0.9);
 //   pid.startTask(getGyro, driveSetBoth, 300);
 //   delay(5000);
+// }
+
+// void driveStraight(double feet, int speed){
+//   driveStraight(feet, speed, DEFAULT_SLEW);
 // }
 
 // void driveStraight(double feet, int speed, int ramp){

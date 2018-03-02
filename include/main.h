@@ -26,6 +26,7 @@
 #define MAIN_H_
 
 #include <API.h>
+#include <math.h>
 #include "movement.h"
 #include "buttons.h"
 #include "lcdMenu.h"
@@ -147,6 +148,7 @@ void operatorControl();
 void firstBase();
 void cornerLaunch();
 void firstCorner();
+void firstTraverse();
 
 
 // Global variables

@@ -5,10 +5,6 @@
 
 extern Semaphore isDoneDriving;
 
-void driveStraight(double feet, int speed);
-
-void driveStraight(double feet, int speed, int ramp);
-
 void driveDist(double feet);
 
 void driveDist(double feet, char stopOnCode);
@@ -33,11 +29,13 @@ void driveWaitRamp(double feet, int leftPwr, int rightPwr, int slew);
 
 void driveTurnDeg(int degrees);
 
+void driveTurnDeg(int degrees, int maxLeft, int maxRight);
+
 void smartGrabFront(int speed);
 
 void smartGrabBack(int speed);
 
-void lineUp(double feet);
+void lineUp(int speed);
 
 void stopOnLine(double feet);
 
@@ -48,5 +46,9 @@ void stopOnLineBlind(int speed, int slew);
 void stopOnLineBlind(int speed);
 
 void driveToLine(int speed);
+
+TaskHandle driveHoldRight();
+
+TaskHandle driveHoldLeft();
 
 #endif

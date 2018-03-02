@@ -40,6 +40,7 @@ int linSpeed(int speed){
  return speed;
 }
 
+
 void frontGrabSet(bool isGrabbing){
   digitalWrite(frontGrab, isGrabbing);
 }
@@ -131,6 +132,24 @@ void driveSet(int left, int right){
   mset(dl3, -left);
   mset(dl4, left);
   mset(dl5, -left);
+}
+
+void driveSetLeft(int speed){
+  speed = linSpeed(speed);
+  mset(dl1, -speed);
+  mset(dl2, -speed);
+  mset(dl3, -speed);
+  mset(dl4, speed);
+  mset(dl5, -speed);
+}
+
+void driveSetRight(int speed){
+  speed = linSpeed(speed);
+  mset(dr1, speed);
+  mset(dr2, -speed);
+  mset(dr3, speed);
+  mset(dr4, -speed);
+  mset(dr5, speed);
 }
 
 unsigned int getProx(){

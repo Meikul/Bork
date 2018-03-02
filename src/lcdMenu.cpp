@@ -110,15 +110,6 @@ void autonSelect(){
       lcdSet(1, "Run Auton");
       if(autonBtnsEnabled) {
         lcdSet(2, "Enabled");
-        if(isPressed(btn7l)){
-          firstBase();
-        }
-        else if(isPressed(btn7r)){
-          cornerLaunch();
-        }
-        else if(isPressed(btn7d)){
-          firstCorner();
-        }
       }
       else lcdSet(2, "Buttons Disabled");
       // if(isPressed(btn5d) && isPressed(btn6d)){

@@ -15,6 +15,8 @@ void mset(int port, int speed, int slew);
  */
 void driveSet(int left, int right);
 void driveSetBoth(int speed);
+void driveSetLeft(int speed);
+void driveSetRight(int speed);
 void driveSetRamp(int left, int right, int slew);
 void driveSetImm(int left, int right);
 void driveSetNoLin(int left, int right);

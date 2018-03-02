@@ -12,8 +12,6 @@
 
 #include "main.h"
 
-#include <math.h>
-
 // void firstBase();
 // void cornerLaunch();
 void firstTraverse();
@@ -80,45 +78,66 @@ void cornerLaunch(){
   driveToLine(100);
   driveWait(0.25, 100);
   punchSet(true);
+  driveTime(300, 50);
   stopOnLine(-0.3);
   punchSet(false);
   frontGrabSet(false);
-  driveStop();
 }
 
 void firstCorner(){
   unsigned int wallDist = getProx();
-  const double fullHypo = 68.0;
+  while(abs(wallDist) > 100){
+    wallDist = getProx();
+    delay(20);
+  }
+  const double fullHypo = 67;
   double curHypo = sqrt(2 * (wallDist * wallDist));
   double dist = (fullHypo - curHypo) / 12.0;
+  frontGrabSet(false);
+  gateSet(false);
   driveTurnDeg(90);
-  driveDist(-dist, 't');
-  driveTurnDeg(-45);
+  driveDist(-dist, 's');
+  driveTurnDeg(-44);
+  resetGyro();
   driveDist(-3.5);
-  smartGrabFront(-40);
-  driveSetImm(100, 100);
-  delay(500);
-  if(!isOverLine()) driveToLine(127);
-  while(isOverLine()){
+  smartGrabFront(-60);
+  driveTurnDeg(-getGyro());
+  resetGyro();
+  for(int counts=0; counts < 5;){
+    if(isOverLine(lineRight)) counts++;
+    else counts = 0;
+    driveSet(127, 127);
+    delay(20);
+  }
+  for(int counts=0; counts < 5;){
+    if(!isOverLine()) counts++;
+    else counts = 0;
     driveSet(127, 127);
     delay(20);
   }
   driveToLine(127);
-  driveDist(2.5, 't');
-  driveStop();
+  driveWait(2.0, 127);
   punchSet(true);
-  delay(500);
+  driveDist(-0.5, 's');
   punchSet(false);
+  frontGrabSet(false);
+  driveTurnDeg(135-getGyro(), 70, 127);
 }
 
 void firstTraverse(){
-  driveTurnDeg(180);
-  driveDist(2.0);
+  resetGyro();
+  driveWait(1.0, 90, 90);
+  smartGrabBack(30);
+  driveSetImm(30, 30);
+  delay(200);
+  driveWait(0.25, 90, 90);
+  driveWait(0.15, 20, 20);
   smartGrabFront(40);
-  driveWait(1, 60);
-  driveStop();
-  delay(400);
-  driveTurnDeg(20);
+  driveSetImm(40, 40);
+  delay(300);
+  driveWait(0.7, 127);
+  driveDist(0.5);
+  driveTurnDeg(-10-getGyro(), 127, -30);
 }
 
 void backOverFront(){
