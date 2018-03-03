@@ -78,7 +78,6 @@ void cornerLaunch(){
   driveToLine(100);
   driveWait(0.25, 100);
   punchSet(true);
-  driveTime(300, 50);
   stopOnLine(-0.3);
   punchSet(false);
   frontGrabSet(false);
@@ -90,14 +89,15 @@ void firstCorner(){
     wallDist = getProx();
     delay(20);
   }
-  const double fullHypo = 67;
+  const double fullHypo = 66;
   double curHypo = sqrt(2 * (wallDist * wallDist));
   double dist = (fullHypo - curHypo) / 12.0;
   frontGrabSet(false);
   gateSet(false);
   driveTurnDeg(90);
+  resetGyro();
   driveDist(-dist, 's');
-  driveTurnDeg(-44);
+  driveTurnDeg(-44-getGyro());
   resetGyro();
   driveDist(-3.5);
   smartGrabFront(-60);
@@ -116,28 +116,33 @@ void firstCorner(){
     delay(20);
   }
   driveToLine(127);
-  driveWait(2.0, 127);
+  driveWait(1, 127);
+  driveSetImm(70, 70);
+  driveDist(0.8, 10, 's');
+  driveTurnDeg(-45-getGyro(), 127, 20);
+  stopOnLine(-0.5);
+  driveDist(1);
   punchSet(true);
-  driveDist(-0.5, 's');
+  stopOnLine(-0.5, 127);
   punchSet(false);
   frontGrabSet(false);
-  driveTurnDeg(135-getGyro(), 70, 127);
 }
 
 void firstTraverse(){
   resetGyro();
-  driveWait(1.0, 90, 90);
-  smartGrabBack(30);
-  driveSetImm(30, 30);
+  driveWait(-1.25, -90, -90);
+  smartGrabFront(-40);
+  driveTurnDeg(-getGyro());
+  driveWait(-0.25, -90, -90);
+  driveWait(-0.15, -20, -20);
+  smartGrabBack(-40);
+  driveSetImm(-40, -40);
   delay(200);
-  driveWait(0.25, 90, 90);
-  driveWait(0.15, 20, 20);
-  smartGrabFront(40);
-  driveSetImm(40, 40);
-  delay(300);
-  driveWait(0.7, 127);
-  driveDist(0.5);
-  driveTurnDeg(-10-getGyro(), 127, -30);
+  driveTurnDeg(180-getGyro());
+  resetGyro();
+  driveWait(0.4, 127);
+  driveDist(0.2);
+  driveTurnDeg(-10-getGyro());
 }
 
 void backOverFront(){

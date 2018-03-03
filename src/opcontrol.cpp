@@ -39,6 +39,8 @@ void operatorControl() {
 		// Drive
 		int rStick = joystickGetAnalog(1, 2);
 		int lStick = joystickGetAnalog(1, 3);
+		if(abs(rStick) < 10) rStick = 0;
+		if(abs(lStick) < 10) lStick = 0;
 		driveSet(lStick, rStick);
 
 		// Grab
@@ -163,7 +165,7 @@ void operatorControl() {
 			firstCorner();
 		}
 		else if(isPressed(btn8r)){
-			lineUp(-80);
+			firstTraverse();
 		}
 		lcdControl(NULL);
 

@@ -47,6 +47,10 @@ void stopOnLineBlind(int speed);
 
 void driveToLine(int speed);
 
+void driveStraight(double dist);
+
+void driveStraight(double dist, int leftSpeed, int rightSpeed);
+
 TaskHandle driveHoldRight();
 
 TaskHandle driveHoldLeft();

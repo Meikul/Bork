@@ -301,6 +301,9 @@ void driveDist(double feet, int slew, char stopOnCode){
   int targetRight = feetToTicksRight(feet);
   int targetLeft = feetToTicksLeft(feet);
   drivePidStopOn = stopOnCode;
+  if(feet > 0) driveSetImm(10, 10);
+  else driveSetImm(-10, -10);
+  delay(80);
   drivePidArgs(0.3, 0.0, 1.2, targetLeft, targetRight, slew);
 }
 
@@ -308,6 +311,9 @@ void driveDist(double feet, char stopOnCode){
   int targetRight = feetToTicksRight(feet);
   int targetLeft = feetToTicksLeft(feet);
   drivePidStopOn = stopOnCode;
+  if(feet > 0) driveSetImm(10, 10);
+  else driveSetImm(-10, -10);
+  delay(80);
   drivePidArgs(0.3, 0.0, 1.2, targetLeft, targetRight);
 }
 
@@ -634,6 +640,14 @@ void lineUp(int speed){
   taskDelete(leftTask);
   taskDelete(rightTask);
   driveStop();
+}
+
+void driveStraight(double dist){
+  driveStraight(dist, 127, 127);
+}
+
+void driveStraight(double dist, int leftSpeed, int rightSpeed){
+
 }
 
 // void idk(double feet){

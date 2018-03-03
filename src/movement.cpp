@@ -161,16 +161,16 @@ unsigned int getProx(){
 void driveSetImm(int left, int right){
   left = linSpeed(left);
   right = linSpeed(right);
-  motorSet(dr1, right);
-  motorSet(dr2, -right);
-  motorSet(dr3, right);
-  motorSet(dr4, -right);
-  motorSet(dr5, right);
-  motorSet(dl1, -left);
-  motorSet(dl2, -left);
-  motorSet(dl3, -left);
-  motorSet(dl4, left);
-  motorSet(dl5, -left);
+  mset(dr1, right, 127);
+  mset(dr2, -right, 127);
+  mset(dr3, right, 127);
+  mset(dr4, -right, 127);
+  mset(dr5, right, 127);
+  mset(dl1, -left, 127);
+  mset(dl2, -left, 127);
+  mset(dl3, -left, 127);
+  mset(dl4, left, 127);
+  mset(dl5, -left, 127);
 }
 
 void driveSetNoLin(int left, int right){
