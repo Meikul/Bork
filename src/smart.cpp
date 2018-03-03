@@ -73,7 +73,7 @@ int driveTargetRight = 0;
 int driveTargetLeft = 0;
 
 void driveTurnDeg(int degrees){
-  driveTurnPid(5.5, 0.0, 20.0, degrees, -110, 110);
+  driveTurnPid(5.5, 0.0, 20.0, degrees, 127, 127);
 }
 
 void driveTurnDeg(int degrees, int maxLeft, int maxRight){
@@ -90,7 +90,7 @@ void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int 
   int prevError = error;
   int stoppedCycles = 0;
   int capInteg = 127 / ki;
-  while(!done){
+  while(!done && !isNewPress(btn8r)){
 
     error = target - getGyro();
 
@@ -106,10 +106,12 @@ void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int 
 
     int pwr = (error * kp) + (integ * ki) + (deltaError * kd);
 
+    pwr = rectify(pwr, -100, 100);
+
     int pwrL = rectify(pwr, -maxLeft, maxLeft);
     int pwrR = rectify(pwr, -maxRight, maxRight);
 
-    driveSetImm(-pwrL, pwrR);
+    driveSetRamp(-pwrL, pwrR, 127);
     prevError = error;
     if(abs(deltaError) < 2){
       stoppedCycles++;
