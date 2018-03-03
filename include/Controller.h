@@ -1,8 +1,12 @@
 #ifndef CONTROL_H_
 #define CONTROL_H_
-//
+
 // #include <API.h>
+
+// typedef void * Controller;
 //
+// Controller initController(double kp, double ki, double kd);
+
 // class Controller{
 // private:
 //   double m_kp;

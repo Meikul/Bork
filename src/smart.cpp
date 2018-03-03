@@ -59,7 +59,7 @@ int degToTicksLeft(int degrees){
 }
 
 int feetToTicksRight(double feet){
-  const int ticksPerFoot = 307;
+  const int ticksPerFoot = 310;
   return (feet * ticksPerFoot);
 }
 
@@ -73,7 +73,7 @@ int driveTargetRight = 0;
 int driveTargetLeft = 0;
 
 void driveTurnDeg(int degrees){
-  driveTurnPid(5.5, 0.0, 20.0, degrees, 127, 127);
+  driveTurnPid(5.5, 0.0, 20.0, degrees, -110, 110);
 }
 
 void driveTurnDeg(int degrees, int maxLeft, int maxRight){
@@ -90,7 +90,7 @@ void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int 
   int prevError = error;
   int stoppedCycles = 0;
   int capInteg = 127 / ki;
-  while(!done && !isNewPress(btn8r)){
+  while(!done){
 
     error = target - getGyro();
 
@@ -106,12 +106,10 @@ void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int 
 
     int pwr = (error * kp) + (integ * ki) + (deltaError * kd);
 
-    pwr = rectify(pwr, -100, 100);
-
     int pwrL = rectify(pwr, -maxLeft, maxLeft);
     int pwrR = rectify(pwr, -maxRight, maxRight);
 
-    driveSetRamp(-pwrL, pwrR, 127);
+    driveSetImm(-pwrL, pwrR);
     prevError = error;
     if(abs(deltaError) < 2){
       stoppedCycles++;
@@ -398,8 +396,8 @@ void smartGrabFront(int power){
       while(!done){
         driveSet(power, power);
         int enc = encoderGet(leftEnc);
-        if(gateGet() && (enc > 90 || enc < -10)) done = true;
-        else if(!gateGet() && (enc > 80 || enc < -10)) done = true;
+        if(gateGet() && (enc > 90 || enc < -2)) done = true;
+        else if(!gateGet() && (enc > 80 || enc < -2)) done = true;
         delay(20);
       }
     }
@@ -407,8 +405,8 @@ void smartGrabFront(int power){
     delay(20);
   }
   gateSet(false);
-  driveStop();
   frontGrabSet(true);
+  driveStop();
 }
 
 void smartGrabBack(int power){
@@ -423,7 +421,7 @@ void smartGrabBack(int power){
       while(!done){
         driveSet(power, power);
         if(power >= 0 && encoderGet(leftEnc) > (30)) done = true;
-        else if(power < 0 && encoderGet(leftEnc) < (-90 - power)) done = true;
+        else if(power < 0 && encoderGet(leftEnc) < (-70 - power)) done = true;
         delay(20);
       }
     }
@@ -641,46 +639,80 @@ void lineUp(int speed){
   taskDelete(rightTask);
   driveStop();
 }
-
-void driveStraight(double dist){
-  driveStraight(dist, 127, 127);
-}
-
-void driveStraight(double dist, int leftSpeed, int rightSpeed){
-
-}
-
-// void idk(double feet){
-//   Controller pid(0.3, 0, 0.9);
-//   pid.startTask(getGyro, driveSetBoth, 300);
-//   delay(5000);
-// }
-
+//
 // void driveStraight(double feet, int speed){
 //   driveStraight(feet, speed, DEFAULT_SLEW);
 // }
-
-// void driveStraight(double feet, int speed, int ramp){
+//
+// void driveStraight(double feet, int speed, int slew){
 //   encoderReset(leftEnc);
 //   encoderReset(rightEnc);
 //   resetGyro();
 //   int target = feetToTicksLeft(feet);
-//   bool goingForward = encoderGet(leftEnc) < target;
-//   bool prevGoingForward = goingForward;
+//   bool targetAhead = encoderGet(leftEnc) < target;
+//   bool prevTargetAhead = targetAhead;
 //   bool targetPassed = false;
-//   Controller pid(5.0, 0.0, 10.0);
+//   int prevError = error;
+//   // Controller pid = initController(4.0, 0.0, 9.0);
 //
 //   while(targetPassed){
-//     goingForward = encoderGet(leftEnc) < target;
-//     targetPassed = goingForward != prevGoingForward;
+//     targetAhead = encoderGet(leftEnc) < target;
+//     targetPassed = targetAhead != prevTargetAhead;
 //
 //     int error = getGyro();
-//     int adjustment = pid.get(error);
 //
 //     if(adjustment < 0) driveSet(speed, speed+adjustment);
 //     else driveSet(speed-adjustment, speed);
 //
-//     prevGoingForward = goingForward;
+//     prevTargetAhead = targetAhead;
+//     delay(20);
+//   }
+//
+//   bool done = false;
+//   double integ = 0;
+//   resetGyro();
+//   int error = target - getGyro();
+//   int stoppedCycles = 0;
+//   int capInteg = 127 / ki;
+//   while(!done && !isNewPress(btn8r)){
+//
+//     error = target - getGyro();
+//
+//     int deltaError = (error - prevError);
+//
+//     if(abs(error) < 30){
+//       integ += error;
+//       integ = rectify(integ, -capInteg, capInteg);
+//     }
+//     else{
+//       integ = 0;
+//     }
+//
+//     int pwr = (error * kp) + (integ * ki) + (deltaError * kd);
+//
+//     pwr = rectify(pwr, -100, 100);
+//
+//     int pwrL = rectify(pwr, -maxLeft, maxLeft);
+//     int pwrR = rectify(pwr, -maxRight, maxRight);
+//
+//     driveSetRamp(-pwrL, pwrR, 127);
+//     prevError = error;
+//     if(abs(deltaError) < 2){
+//       stoppedCycles++;
+//     }
+//     else{
+//       stoppedCycles = 0;
+//     }
+//     if(abs(error) < 5){
+//       if(stoppedCycles > 7){
+//         done = true;
+//       }
+//     }
+//     else if(stoppedCycles > 20){ // give up for burnout
+//       done = true;
+//     }
+//     lcdPrint(uart1, 1, "Tar %d Val %d", target, getGyro());
+//     lcdPrint(uart1, 2, "Err %d Pwr %d", error, pwr);
 //     delay(20);
 //   }
 // }

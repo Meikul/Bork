@@ -134,12 +134,12 @@ void operatorControl();
 #define dre2 6
 #define sonicOutput 7
 
-#define backLight 1
-#define accel 7
+#define backLight 2
 #define frontLight 3
 #define gyroPort 4
 #define lineLeft 5
 #define lineRight 6
+#define accel 7
 
 #define DEFAULT_SLEW 30
 #define launchDelay 220

@@ -197,7 +197,7 @@ bool isOverLine(int port){
 
 bool isOverBase(int port){
   unsigned int val = analogRead(port);
-  return (val < 2970);
+  return (val < 2990);
 }
 
 bool isDrivingForward(){

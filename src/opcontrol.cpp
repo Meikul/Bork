@@ -156,10 +156,12 @@ void operatorControl() {
 		}
 
 		if(isPressed(btn7l)){
-			firstBase();
+			// firstBase();
+			driveTurnDeg(90);
 		}
 		else if(isPressed(btn7r)){
-			cornerLaunch();
+			// cornerLaunch();
+			driveTurnDeg(180);
 		}
 		else if(isPressed(btn7d)){
 			firstCorner();
