@@ -122,30 +122,32 @@ void firstCorner(){
   driveTurnDeg(-45-getGyro(), 127, 20);
   driveWait(0.5, 127);
   punchSet(true);
-  driveWait(-0.25, -70);
+  driveTime(400, -60);
+  driveWait(-0.5, -100);
   driveToLine(-60);
-  driveDist(0, 100, 's');
+  driveDist(0, 120, 's');
   punchSet(false);
   frontGrabSet(false);
 }
 
 void firstTraverse(){
   resetGyro();
-  driveWait(-1.75, -90);
-  smartGrabFront(-25);
+  driveWait(-1.25, -127);
+  while(!isOverBase(frontLight)){
+    driveSet(-60, -60);
+  }
+  driveWait(-0.5, -60, -60);
+  gateSet(true);
+  smartGrabFront(70);
   driveStop();
   delay(200);
   driveTurnDeg(-getGyro());
-  driveWait(-0.25, -90, -90);
-  driveWait(-0.15, -20, -20);
+  resetGyro();
+  driveWait(-0.4, -90, -90);
   smartGrabBack(-40);
   driveStop();
   delay(200);
-  driveTurnDeg(180-getGyro(), 120, 120);
-  resetGyro();
-  driveWait(0.4, 127);
-  driveDist(0.2);
-  driveTurnDeg(-10-getGyro());
+  driveTurnDeg(165-getGyro());
 }
 
 void backOverFront(){

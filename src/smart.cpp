@@ -73,7 +73,7 @@ int driveTargetRight = 0;
 int driveTargetLeft = 0;
 
 void driveTurnDeg(int degrees){
-  driveTurnPid(5.5, 0.0, 20.0, degrees, 127, 127);
+  driveTurnPid(5.5, 0.0, 20.0, degrees, 110, 110);
 }
 
 void driveTurnDeg(int degrees, int maxLeft, int maxRight){
@@ -105,8 +105,6 @@ void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int 
     }
 
     int pwr = (error * kp) + (integ * ki) + (deltaError * kd);
-
-    pwr = rectify(pwr, -100, 100);
 
     int pwrL = rectify(pwr, -maxLeft, maxLeft);
     int pwrR = rectify(pwr, -maxRight, maxRight);
@@ -392,19 +390,19 @@ void smartGrabFront(int power){
   int timeOut = 0;
   while(!done && isMoving() && timeOut < 100){
     driveSet(power, power);
+    delay(20);
     if(isOverBase(frontLight)) {
       encoderReset(leftEnc);
       encoderReset(rightEnc);
       while(!done){
+        delay(20);
         driveSet(power, power);
         int enc = encoderGet(leftEnc);
         if(gateGet() && (enc > 90 || enc < -2)) done = true;
         else if(!gateGet() && (enc > 80 || enc < -2)) done = true;
-        delay(20);
       }
     }
     timeOut++;
-    delay(20);
   }
   gateSet(false);
   frontGrabSet(true);
