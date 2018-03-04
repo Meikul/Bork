@@ -37,7 +37,7 @@ void firstBase(){
   }
   delay(100);
   driveToLine(-110);
-  driveDist(-1.4, 's');
+  driveDist(-1.2, 's');
   driveTurnDeg(-90-getGyro());
   resetGyro();
   backGrabSet(false);
@@ -118,20 +118,21 @@ void firstCorner(){
   driveToLine(127);
   driveWait(1, 127);
   driveSetImm(70, 70);
-  driveDist(0.8, 10, 's');
+  driveDist(1, 10, 's');
   driveTurnDeg(-45-getGyro(), 127, 20);
-  stopOnLine(-0.5);
-  driveDist(1);
+  driveWait(0.5, 127);
   punchSet(true);
-  stopOnLine(-0.5, 127);
+  driveWait(-0.25, -70);
+  driveToLine(-60);
+  driveDist(0, 100, 's');
   punchSet(false);
   frontGrabSet(false);
 }
 
 void firstTraverse(){
   resetGyro();
-  driveWait(-1.25, -90);
-  smartGrabFront(-40);
+  driveWait(-1.75, -90);
+  smartGrabFront(-25);
   driveStop();
   delay(200);
   driveTurnDeg(-getGyro());
@@ -140,7 +141,7 @@ void firstTraverse(){
   smartGrabBack(-40);
   driveStop();
   delay(200);
-  driveTurnDeg(180-getGyro());
+  driveTurnDeg(180-getGyro(), 120, 120);
   resetGyro();
   driveWait(0.4, 127);
   driveDist(0.2);

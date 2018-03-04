@@ -198,7 +198,7 @@ void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRig
       stoppedCycles = 0;
     }
     if(drivePidStopOn == 's'){ // Robot Stopped
-      if(stoppedCycles > 7){
+      if(stoppedCycles > 10){
         done = true;
         driveStop();
       }
@@ -423,7 +423,7 @@ void smartGrabBack(int power){
       while(!done){
         driveSet(power, power);
         if(power >= 0 && encoderGet(leftEnc) > (30)) done = true;
-        else if(power < 0 && encoderGet(leftEnc) < (-70 - power)) done = true;
+        else if(power < 0 && encoderGet(leftEnc) < (-90 - power)) done = true;
         delay(20);
       }
     }
@@ -454,6 +454,8 @@ void stopOnLine(double feet, int slew){
   }
   else{
     while(!isOverLine()){
+      lcdSetText(uart1, 1, "Didn't see line");
+      lcdSetText(uart1, 2, "");
       driveSet(-60, -60);
       delay(20);
     }
