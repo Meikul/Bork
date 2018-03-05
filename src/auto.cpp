@@ -250,17 +250,17 @@ void dejaVu(){
   punchSet(false);
   backGrabSet(false);
   smartGrabFront(-60);
-  driveDist(-0.5, 's');
-  driveTurnDeg(50, 10, 120);
+  driveWait(-0.5, -90);
+  driveTurnDeg(50, 10, 127, 't');
   driveWait(0.2, 90);
-  driveTurnDeg(-50, 120, 10);
-  driveWait(-0.25, -90);
+  driveTurnDeg(-50, 127, 10, 't');
+  driveWait(-0.25, -110);
   driveWait(0.3, 110);
   punchSet(true);
-  driveWait(-0.25, -90);
+  driveWait(-0.25, -110);
   punchSet(false);
   frontGrabSet(false);
-  stopOnLine(-1);
+  driveStop();
 }
 
 void mwuah(){
@@ -274,3 +274,8 @@ void backOverFront(){
   frontGrabSet(false);
 
 }
+
+//TODO: shorten waits after stop pids
+//      increase kd for turn pid
+//      make driveTurnDeg auto adjust and reset gyro
+//      remove stops from transitions

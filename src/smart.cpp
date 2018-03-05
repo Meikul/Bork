@@ -3,7 +3,7 @@
 TaskHandle drivingTask;
 
 void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRight, int slew);
-void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int maxRight);
+void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int maxRight, char stopCode);
 bool isMoving();
 bool isMoving(int milWait);
 void rightHoldTask(void * args);
@@ -73,16 +73,26 @@ int driveTargetRight = 0;
 int driveTargetLeft = 0;
 
 void driveTurnDeg(int degrees){
-  driveTurnPid(5.5, 0.0, 20.0, degrees, 110, 110);
+  driveTurnPid(5.5, 0.0, 20.0, degrees, 110, 110, 's');
 }
 
 void driveTurnDeg(int degrees, int maxLeft, int maxRight){
   maxLeft = abs(maxLeft);
   maxRight = abs(maxRight);
-  driveTurnPid(5.5, 0.0, 20.0, degrees, maxLeft, maxRight);
+  driveTurnPid(5.5, 0.0, 20.0, degrees, maxLeft, maxRight, 's');
 }
 
-void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int maxRight){
+void driveTurnDeg(int degrees, int maxLeft, int maxRight, char stopOn){
+  maxLeft = abs(maxLeft);
+  maxRight = abs(maxRight);
+  driveTurnPid(5.5, 0.0, 20.0, degrees, maxLeft, maxRight, stopOn);
+}
+
+void driveTurnDeg(int degrees, char stopOn){
+  driveTurnPid(5.5, 0.0, 20.0, degrees, 110, 110, stopOn);
+}
+
+void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int maxRight, char stopCode){
   bool done = false;
   double integ = 0;
   resetGyro();
@@ -90,6 +100,7 @@ void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int 
   int prevError = error;
   int stoppedCycles = 0;
   int capInteg = 127 / ki;
+  const bool initErrIsNeg = error < 0;
   while(!done && !isNewPress(btn8r)){
 
     error = target - getGyro();
@@ -111,6 +122,9 @@ void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int 
 
     driveSetRamp(-pwrL, pwrR, 127);
     prevError = error;
+
+    bool errIsNeg = (error < 0);
+
     if(abs(deltaError) < 2){
       stoppedCycles++;
     }
@@ -118,11 +132,14 @@ void driveTurnPid(double kp, double ki, double kd, int target, int maxLeft, int 
       stoppedCycles = 0;
     }
     if(abs(error) < 5){
-      if(stoppedCycles > 7){
+      if(stopCode == 's' && stoppedCycles > 7){
+        done = true;
+      }
+      else if(stopCode == 't' && errIsNeg != initErrIsNeg){
         done = true;
       }
     }
-    else if(stoppedCycles > 20){ // give up for burnout
+    if(stoppedCycles > 20){ // give up for burnout
       done = true;
     }
     lcdPrint(uart1, 1, "Tar %d Val %d", target, getGyro());
@@ -149,8 +166,8 @@ void drivePidArgs(double kp, double ki, double kd, int targetLeft, int targetRig
   int prevErrorR = errorR;
   int stoppedCycles = 0;
   int capInteg = 127 / ki;
-  bool initErrLIsNeg = targetLeft < 0;
-  bool initErrRIsNeg = targetRight < 0;
+  const bool initErrLIsNeg = targetLeft < 0;
+  const bool initErrRIsNeg = targetRight < 0;
   while(!done && !isNewPress(btn8r)){
     encL = encoderGet(leftEnc);
     encR = encoderGet(rightEnc);
@@ -380,6 +397,7 @@ void driveTime(unsigned long waitTime, int power){
   unsigned long startTime = millis();
   while((millis() - startTime) <= waitTime){
     driveSet(power, power);
+    delay(20);
   }
   driveStop();
 }

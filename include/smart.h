@@ -55,4 +55,8 @@ TaskHandle driveHoldRight();
 
 TaskHandle driveHoldLeft();
 
+void driveTurnDeg(int degrees, int maxLeft, int maxRight, char stopOn);
+
+void driveTurnDeg(int degrees, char stopOn);
+
 #endif
