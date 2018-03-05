@@ -149,6 +149,9 @@ void firstBase();
 void cornerLaunch();
 void firstCorner();
 void firstTraverse();
+void secondCorner();
+void dejaVu();
+void mwuah();
 
 
 // Global variables

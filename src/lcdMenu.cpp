@@ -164,6 +164,9 @@ void sensorView(){
   lcdPrint(uart1, 1, "Sensors %d", sensorIndex);
   static int accMax = 0;
   switch (sensorIndex) {
+    case -4:
+      lcdPrint(uart1, 2, "Sonic %d", getProx());
+      break;
     case -3:
       lcdPrint(uart1, 2, "L %d R %d", joystickGetAnalog(1, 3), joystickGetAnalog(1, 2));
       break;

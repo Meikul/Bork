@@ -19,8 +19,12 @@ void firstTraverse();
 void autonomous() {
   firstBase();
   cornerLaunch();
+  firstCorner();
   firstTraverse();
   cornerLaunch();
+  secondCorner();
+  dejaVu();
+  mwuah();
 }
 
 void firstBase(){
@@ -37,7 +41,7 @@ void firstBase(){
   }
   delay(100);
   driveToLine(-110);
-  driveDist(-1.2, 's');
+  driveDist(-1.1, 's');
   driveTurnDeg(-90-getGyro());
   resetGyro();
   backGrabSet(false);
@@ -65,22 +69,22 @@ void cornerLaunch(){
   }
   driveStop();
   delay(200);
-  driveTime(400, -60);
   punchSet(false);
-  backGrabSet(false);
   frontGrabSet(false);
-  driveWait(-0.15, -100);
-  driveStop();
-  delay(200);
+  driveTime(250, -70);
+  backGrabSet(false);
+  driveWait(-0.25, -110);
   smartGrabFront(-60);
-  delay(400);
+  delay(200);
   digitalWrite(claw, true);
   driveToLine(100);
   driveWait(0.25, 100);
   punchSet(true);
-  stopOnLine(-0.3);
+  driveTime(200, -60);
   punchSet(false);
   frontGrabSet(false);
+  driveTime(300, 60);
+  stopOnLine(-0.6);
 }
 
 void firstCorner(){
@@ -93,6 +97,7 @@ void firstCorner(){
   double curHypo = sqrt(2 * (wallDist * wallDist));
   double dist = (fullHypo - curHypo) / 12.0;
   frontGrabSet(false);
+  backGrabSet(false);
   gateSet(false);
   driveTurnDeg(90);
   resetGyro();
@@ -119,15 +124,14 @@ void firstCorner(){
   driveWait(1, 127);
   driveSetImm(70, 70);
   driveDist(1, 10, 's');
-  driveTurnDeg(-45-getGyro(), 127, 20);
-  driveWait(0.5, 127);
+  driveTurnDeg(-45-getGyro(), 127, 30);
+  driveWait(0.7, 127);
   punchSet(true);
   driveTime(400, -60);
   driveWait(-0.5, -100);
-  driveToLine(-60);
-  driveDist(0, 120, 's');
   punchSet(false);
   frontGrabSet(false);
+  stopOnLine(-0.6);
 }
 
 void firstTraverse(){
@@ -136,18 +140,133 @@ void firstTraverse(){
   while(!isOverBase(frontLight)){
     driveSet(-60, -60);
   }
-  driveWait(-0.5, -60, -60);
+  driveWait(-0.3, -60, -60);
   gateSet(true);
   smartGrabFront(70);
   driveStop();
   delay(200);
   driveTurnDeg(-getGyro());
   resetGyro();
-  driveWait(-0.4, -90, -90);
-  smartGrabBack(-40);
+  driveWait(-0.3, -110, -110);
+  driveSetImm(-30, -30);
+  smartGrabBack(-30);
   driveStop();
   delay(200);
-  driveTurnDeg(165-getGyro());
+  driveTurnDeg(-10-getGyro());
+  resetGyro();
+  driveWait(-0.25, -110);
+  driveDist(-0.5, 's');
+  driveTurnDeg(165-getGyro(), 110, 105);
+}
+
+void secondCorner(){
+  unsigned int wallDist = getProx();
+  while(abs(wallDist) > 100){
+    wallDist = getProx();
+    delay(20);
+  }
+  const double offset = 9;
+  double curHypo = sqrt(2 * (wallDist * wallDist));
+  double dist = (curHypo - offset) / 12.0;
+  frontGrabSet(false);
+  backGrabSet(false);
+  gateSet(false);
+  driveTurnDeg(-90);
+  resetGyro();
+  driveDist(-dist, 's');
+  driveTurnDeg(45-getGyro());
+  resetGyro();
+  driveDist(-3.75);
+  smartGrabFront(-70);
+  driveTurnDeg(-getGyro());
+  resetGyro();
+  for(int counts=0; counts < 5;){
+    if(isOverLine(lineLeft)) counts++;
+    else counts = 0;
+    driveSet(127, 127);
+    delay(20);
+  }
+  for(int counts=0; counts < 5;){
+    if(!isOverLine()) counts++;
+    else counts = 0;
+    driveSet(127, 127);
+    delay(20);
+  }
+  driveToLine(127);
+  driveWait(1, 127);
+  driveSetImm(70, 70);
+  driveDist(1, 10, 's');
+  driveTurnDeg(45-getGyro(), 30, 127);
+  driveWait(0.7, 127);
+  punchSet(true);
+  driveTime(400, -60);
+  driveWait(-0.5, -100);
+  driveToLine(-60);
+  punchSet(false);
+  frontGrabSet(false);
+}
+
+void dejaVu(){
+  resetGyro();
+  driveDist(-4.6, 's');
+  driveTurnDeg(120-getGyro());
+  resetGyro();
+  driveWait(-0.7, -110);
+  driveSetImm(-40, -40);
+  smartGrabFront(-30);
+  delay(200);
+  if(getGyro() < -10){
+    driveTurnDeg(-getGyro());
+    resetGyro();
+  }
+  driveDist(-2.1, 15, 's');
+  driveTurnDeg(-68-getGyro());
+  resetGyro();
+  driveWait(-1.5, -90);
+  smartGrabBack(-60);
+  driveTurnDeg(-9-getGyro(), 120, 30);
+  resetGyro();
+  for(int counts=0; counts < 5;){
+    if(isOverLine(lineLeft)) counts++;
+    else counts = 0;
+    driveSet(110, 110);
+    delay(10);
+  }
+  for(int counts=0; counts < 5;){
+    if(!isOverLine()) counts++;
+    else counts = 0;
+    driveSet(110, 110);
+    delay(10);
+  }
+  driveToLine(110);
+  driveWait(1, 110);
+  // driveSetImm(80, 80);
+  driveDist(1.2, 10, 's');
+  driveTurnDeg(-46-getGyro(), 127, 10);
+  driveWait(0.5, 127);
+  punchSet(true);
+  driveTime(200, -100);
+  frontGrabSet(false);
+  punchSet(false);
+  backGrabSet(false);
+  smartGrabFront(-60);
+  driveDist(-0.5, 's');
+  driveTurnDeg(50, 10, 120);
+  driveWait(0.2, 90);
+  driveTurnDeg(-50, 120, 10);
+  driveWait(-0.25, -90);
+  driveWait(0.3, 110);
+  punchSet(true);
+  driveWait(-0.25, -90);
+  punchSet(false);
+  frontGrabSet(false);
+  stopOnLine(-1);
+}
+
+void mwuah(){
+  driveTurnDeg(45);
+  driveWait(-6, -127);
+  driveStop();
 }
 
 void backOverFront(){

@@ -432,7 +432,6 @@ void smartGrabBack(int power){
   driveStop();
 }
 
-
 void stopOnLine(double feet){
   stopOnLine(feet, DEFAULT_SLEW);
 }
@@ -458,7 +457,7 @@ void stopOnLine(double feet, int slew){
       delay(20);
     }
   }
-  driveDist(0, 's');
+  driveDist(0.1, 's');
   driveStop();
 }
 

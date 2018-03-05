@@ -156,7 +156,7 @@ void operatorControl() {
 		}
 
 		if(isPressed(btn7l)){
-			firstBase();
+			autonomous();
 		}
 		else if(isPressed(btn7r)){
 			cornerLaunch();
@@ -166,6 +166,9 @@ void operatorControl() {
 		}
 		else if(isPressed(btn8r)){
 			firstTraverse();
+		}
+		else if(isPressed(btn8l)){
+			secondCorner();
 		}
 		lcdControl(NULL);
 
