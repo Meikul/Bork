@@ -31,6 +31,7 @@
 #include "buttons.h"
 #include "lcdMenu.h"
 #include "smart.h"
+#include "pid.h"
 
 // Allow usage of this file in C++ programs
 #ifdef __cplusplus
@@ -108,7 +109,7 @@ void operatorControl();
 // #define dl3 8
 // #define dl4 9
 
-#define dr1 2
+#define topLift 2
 #define dr2 3
 #define dr3 4
 #define dr4 5
@@ -116,7 +117,7 @@ void operatorControl();
 #define dl1 1
 #define dl2 10
 #define dl3 9
-#define dl4 8
+#define botLift 8
 #define dl5 7
 
 // Solenoids
@@ -134,12 +135,14 @@ void operatorControl();
 #define dre2 6
 #define sonicOutput 7
 
+#define blPot 1
 #define backLight 2
 #define frontLight 3
 #define gyroPort 4
 #define lineLeft 5
 #define lineRight 6
 #define accel 7
+#define tlPot 8
 
 #define DEFAULT_SLEW 30
 #define launchDelay 220

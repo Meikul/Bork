@@ -350,7 +350,7 @@ void driveWaitRamp(double feet, int leftPwr, int rightPwr, int slew){
     encR = encoderGet(rightEnc);
     driveSetRamp(leftPwr, rightPwr, slew);
     lcdPrint(uart1, 2, "T %d C %d", encL, counts);
-    lcdPrint(uart1, 2, "D %d M %d", (encL-prevEncL), motorGet(dr1));
+    lcdPrint(uart1, 2, "D %d M %d", (encL-prevEncL), motorGet(dr2));
     if((abs(encL - prevEncL) < 5 || abs(encR - prevEncR) < 5)) counts++;
     else counts = 0;
     prevEncL = encL;
@@ -372,7 +372,7 @@ void driveWaitTicks(int ticks, int speed){
     encR = encoderGet(rightEnc);
     driveSetRamp(speed, speed, DEFAULT_SLEW);
     lcdPrint(uart1, 1, "T %d C %d", encL, counts);
-    lcdPrint(uart1, 2, "D %d M %d", (encL-prevEncL), motorGet(dr1));
+    lcdPrint(uart1, 2, "D %d M %d", (encL-prevEncL), motorGet(dr2));
     if((abs(encL - prevEncL) < 5 || abs(encR - prevEncR) < 5)) counts++;
     else counts = 0;
     prevEncL = encL;
@@ -480,7 +480,7 @@ void stopOnLine(double feet, int slew){
 }
 
 void stopOnLineBlind(int speed){
-  stopOnLine(speed, DEFAULT_SLEW);
+  stopOnLineBlind(speed, DEFAULT_SLEW);
 }
 
 void stopOnLineBlind(int speed, int slew){
@@ -490,7 +490,7 @@ void stopOnLineBlind(int speed, int slew){
     timeout++;
     delay(20);
   }
-  driveDist(0, 's');
+  driveDist(0.1, 's');
   driveStop();
 }
 
@@ -735,3 +735,11 @@ void lineUp(int speed){
 //     delay(20);
 //   }
 // }
+
+TaskHandle taskCreate(TaskCode taskCode){
+    return taskCreate(taskCode, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+}
+
+TaskHandle taskCreate(TaskCode taskCode, void * args){
+  return taskCreate(taskCode, TASK_DEFAULT_STACK_SIZE, args, TASK_PRIORITY_DEFAULT);
+}

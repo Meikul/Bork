@@ -103,7 +103,6 @@ void mset(int port, int targetSpeed, int slew){
 void driveSetRamp(int left, int right, int slew){
   left = linSpeed(left);
   right = linSpeed(right);
-  mset(dr1, right, slew);
   mset(dr2, -right, slew);
   mset(dr3, right, slew);
   mset(dr4, -right, slew);
@@ -111,7 +110,6 @@ void driveSetRamp(int left, int right, int slew){
   mset(dl1, -left, slew);
   mset(dl2, -left, slew);
   mset(dl3, -left, slew);
-  mset(dl4, left, slew);
   mset(dl5, -left, slew);
 }
 
@@ -122,7 +120,6 @@ void driveSetBoth(int speed){
 void driveSet(int left, int right){
   left = linSpeed(left);
   right = linSpeed(right);
-  mset(dr1, right);
   mset(dr2, -right);
   mset(dr3, right);
   mset(dr4, -right);
@@ -130,7 +127,6 @@ void driveSet(int left, int right){
   mset(dl1, -left);
   mset(dl2, -left);
   mset(dl3, -left);
-  mset(dl4, left);
   mset(dl5, -left);
 }
 
@@ -139,13 +135,11 @@ void driveSetLeft(int speed){
   mset(dl1, -speed);
   mset(dl2, -speed);
   mset(dl3, -speed);
-  mset(dl4, speed);
   mset(dl5, -speed);
 }
 
 void driveSetRight(int speed){
   speed = linSpeed(speed);
-  mset(dr1, speed);
   mset(dr2, -speed);
   mset(dr3, speed);
   mset(dr4, -speed);
@@ -161,7 +155,6 @@ unsigned int getProx(){
 void driveSetImm(int left, int right){
   left = linSpeed(left);
   right = linSpeed(right);
-  mset(dr1, right, 255);
   mset(dr2, -right, 255);
   mset(dr3, right, 255);
   mset(dr4, -right, 255);
@@ -169,12 +162,10 @@ void driveSetImm(int left, int right){
   mset(dl1, -left, 255);
   mset(dl2, -left, 255);
   mset(dl3, -left, 255);
-  mset(dl4, left, 255);
   mset(dl5, -left, 255);
 }
 
 void driveSetNoLin(int left, int right){
-  mset(dr1, right);
   mset(dr2, -right);
   mset(dr3, right);
   mset(dr4, -right);
@@ -182,7 +173,6 @@ void driveSetNoLin(int left, int right){
   mset(dl1, -left);
   mset(dl2, -left);
   mset(dl3, -left);
-  mset(dl4, left);
   mset(dl5, -left);
 }
 
@@ -226,4 +216,20 @@ int getGyro(){
 int getAccel(){
   const int accelBias = 1785;
   return analogRead(accel) - accelBias;
+}
+
+void topLiftSet(int power){
+  mset(topLift, power, 15);
+}
+
+void botLiftSet(int power){
+  mset(botLift, power, 30);
+}
+
+int getTl(){
+	return analogRead(tlPot);
+}
+
+int getBl(){
+  return analogRead(blPot);
 }

@@ -38,5 +38,10 @@ bool isOverLine(int port);
 bool isOverLine();
 void driveStop();
 unsigned int getProx();
+void topLiftSet(int power);
+void botLiftSet(int power);
+int getTl();
+int getBl();
+
 
 #endif

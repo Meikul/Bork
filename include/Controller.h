@@ -3,10 +3,6 @@
 
 // #include <API.h>
 
-// typedef void * Controller;
-//
-// Controller initController(double kp, double ki, double kd);
-
 // class Controller{
 // private:
 //   double m_kp;

@@ -59,4 +59,7 @@ void driveTurnDeg(int degrees, int maxLeft, int maxRight, char stopOn);
 
 void driveTurnDeg(int degrees, char stopOn);
 
+TaskHandle taskCreate(TaskCode taskCode);
+TaskHandle taskCreate(TaskCode taskCode, void * args);
+
 #endif
