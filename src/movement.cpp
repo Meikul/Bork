@@ -219,11 +219,19 @@ int getAccel(){
 }
 
 void topLiftSet(int power){
-  mset(topLift, power, 15);
+  mset(topLift, -power, 30);
+}
+
+void topLiftSetRamp(int power, int slew){
+  mset(topLift, -power, slew);
+}
+
+void botLiftSetRamp(int power, int slew){
+  mset(botLift, -power, slew);
 }
 
 void botLiftSet(int power){
-  mset(botLift, power, 30);
+  mset(botLift, -power, 30);
 }
 
 int getTl(){

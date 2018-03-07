@@ -13,10 +13,22 @@ typedef int(*IntFunction)();
  * @param  kp
  * @param  ki
  * @param  kd
- * @param  input inputFunction pointer
- * @return       PID
+ * @param  process    initial input
+ * @param  initTarget initial target
+ * @return            PID
  */
 PID initPid(double kp, double ki, double kd, int process, int initTarget);
+
+/**
+ * Creates pid controller with input function
+ * @param  kp
+ * @param  ki
+ * @param  kd
+ * @param  input      input function
+ * @param  initTarget initial target
+ * @return            PID
+ */
+PID initPid(double kp, double ki, double kd, IntFunction input, int initTarget);
 
 /**
  * Gains
@@ -45,6 +57,19 @@ void setTarget(PID pid, int target);
  * @return output
  */
 int calculatePid(PID pid, int process);
+
+/**
+ * Calculates pid output
+ * @return output
+ */
+int calculatePid(PID pid);
+
+/**
+ * Set input function
+ * @param pid
+ * @param input
+ */
+void setInputFunction(PID pid, IntFunction input);
 
 
 #endif

@@ -143,8 +143,6 @@ void operatorControl() {
 
 		if(isPressed(btn7l)){
 			// autonomous();
-			dejaVu();
-			mwuah();
 		}
 		// else if(isPressed(btn7r)){
 		// 	cornerLaunch();
@@ -173,19 +171,18 @@ void liftControl(void * ignore){
 	while(true){
 		if(isPressed(btn7l)){
 			topLiftSet(0);
+			botLiftSet(0);
 			setTarget(topLiftPid, getTl());
 			setTarget(botLiftPid, getBl());
-			lcdPrint(uart1, 1, "%d", getTarget(topLiftPid));
-		}
-		else if(isPressed(btn7d)){
-			topLiftSet(127);
+			// lcdPrint(uart1, 1, "%d", getTarget(topLiftPid));
 		}
 		else{
 			int tlPwr = calculatePid(topLiftPid, getTl());
 			int blPwr = calculatePid(botLiftPid, getBl());
-			lcdPrint(uart1, 1, "%d", getTarget(topLiftPid));
-			// botLiftSet(-blPwr);
-			// topLiftSet(-tlPwr);
+			lcdPrint(uart1, 1, "%d", analogRead(blPot));
+			// lcdPrint(uart1, 1, "%d", getTarget(topLiftPid));
+			botLiftSet(blPwr);
+			topLiftSet(tlPwr);
 			// TODO check with gains that pointer is calculating on same struct
 		}
 		delay(20);
