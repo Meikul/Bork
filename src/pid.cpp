@@ -153,14 +153,14 @@ void startTask(PID pidptr, OutputFunction output){
 void startTask(PID pidptr){
   pidst* pid = (pidst*)pidptr;
   unsigned int state = taskGetState(pid->task);
-  if(state == TASK_DEAD){
+  if(state == TASK_DEAD || state == TASK_RUNNING){
     pid->task = taskCreate(taskLoop, TASK_DEFAULT_STACK_SIZE, pidptr, TASK_PRIORITY_DEFAULT);
   }
   else if(state == TASK_SUSPENDED){
     taskResume(pid->task);
   }
 }
-
+;
 void setInputFunction(PID pidptr, InputFunction input){
   pidst* pid = (pidst*)pidptr;
   pid->input = input;
@@ -186,8 +186,15 @@ void resumeTask(PID pidptr){
 
 void killTask(PID pidptr){
   pidst* pid = (pidst*)pidptr;
-  if(taskGetState(pid->task) != TASK_DEAD){
+  if(taskGetState(pid->task) != TASK_DEAD && pid->task != NULL){
     taskDelete(pid->task);
-    pid->task = NULL;
   }
+}
+
+void deletePid(PID pidptr){
+  pidst* pid = (pidst*)pidptr;
+  unsigned int state = taskGetState(pid->task);
+  if(state != TASK_DEAD && state != TASK_RUNNING) killTask(pidptr);
+  free(pid);
+  pidptr = NULL;
 }

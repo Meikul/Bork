@@ -48,8 +48,8 @@ void firstBase(){
   driveDist(-1.75);
   delay(300);
   smartGrabBack(-60);
-  delay(200);
-  driveTurnDeg(-63-getGyro());
+  driveWait(-0.06, -60);
+  driveTurnDeg(-64-getGyro());
 }
 
 void cornerLaunch(){
@@ -71,20 +71,19 @@ void cornerLaunch(){
   delay(200);
   punchSet(false);
   frontGrabSet(false);
-  driveTime(250, -70);
+  driveTime(350, -70);
   backGrabSet(false);
-  driveWait(-0.25, -110);
+  driveWait(-0.25, -120);
   smartGrabFront(-60);
   delay(200);
   digitalWrite(claw, true);
   driveToLine(100);
-  driveWait(0.25, 100);
+  driveWait(0.35, 100);
   punchSet(true);
   driveTime(200, -60);
   punchSet(false);
   frontGrabSet(false);
-  driveTime(300, 60);
-  stopOnLineBlind(-90);
+  lineUp(-1.4);
 }
 
 void firstCorner(){
@@ -125,13 +124,12 @@ void firstCorner(){
   driveSetImm(70, 70);
   driveDist(1, 10, 's');
   driveTurnDeg(-45-getGyro(), 127, 30);
-  driveWait(0.7, 127);
+  driveWait(0.25, 127);
   punchSet(true);
-  driveTime(400, -60);
+  driveTime(400, -70);
   driveWait(-0.5, -100);
   punchSet(false);
   frontGrabSet(false);
-  stopOnLine(-0.6);
 }
 
 void firstTraverse(){
@@ -201,7 +199,7 @@ void secondCorner(){
   punchSet(true);
   driveTime(400, -60);
   driveWait(-0.5, -100);
-  driveToLine(-60);
+  lineUp(-1.4);
   punchSet(false);
   frontGrabSet(false);
 }

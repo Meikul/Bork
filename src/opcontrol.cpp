@@ -19,7 +19,7 @@ void operatorControl() {
 	bool watchingBack = false;
 	bool watchingEnc = false;
 	bool hasPunched = false;
-	TaskHandle liftTask = taskCreate(liftControl);
+	// TaskHandle liftTask = taskCreate(liftControl);
 	while (1) {
 		// Drive
 		int rStick = joystickGetAnalog(1, 2);
@@ -34,10 +34,10 @@ void operatorControl() {
 			gateSet(false);
 			watchingFront = false;
 		}
-		if(isNewPress(btn8d)){
-			backGrabSet(!backGrabGet());
-			watchingBack = false;
-		}
+		// if(isNewPress(btn8d)){
+		// 	backGrabSet(!backGrabGet());
+		// 	watchingBack = false;
+		// }
 
 		if(isNewPress(btn6u) || watchingFront){
 			if(frontGrabGet()){
@@ -136,31 +136,58 @@ void operatorControl() {
 			}
 		}
 
-		// if(isPressed(btn7l)){
-		// 	firstBase();
-		// }
-		// else if(isPressed(btn7r)){
-		// 	cornerLaunch();
-		// }
-		// else if(isPressed(btn7d)){
-		// 	firstCorner();
-		// }
-		// else if(isPressed(btn8r)){
-		// 	firstTraverse();
-		// }
-		// else if(isPressed(btn8l)){
-		// 	secondCorner();
-		// }
-		// else if(isPressed(btn8d)){
-		// 	dejaVu();
-		// 	mwuah();
-		// }
+		if(isPressed(btn7l)){
+			firstBase();
+		}
+		else if(isPressed(btn7r)){
+			cornerLaunch();
+		}
+		else if(isPressed(btn7d)){
+			firstCorner();
+		}
+		else if(isPressed(btn8r)){
+			firstTraverse();
+		}
+		else if(isPressed(btn8l)){
+			secondCorner();
+		}
+		else if(isPressed(btn8d)){
+			dejaVu();
+			mwuah();
+		}
 
-		// lcdControl(NULL);
+		lcdControl(NULL);
 
 		delay(20);
 	}
 	// taskDelete(lcdMenu);
+}
+
+void liftControl(void * ignore){
+	PID topLiftPid = initPid(0.3, 0.0, 0.2, getTl, topLiftSet, getTl());
+	// PID botLiftPid = initPid(0.3, 0.0, 0.3, getBl, botLiftSet, getBl());
+	setTarget(topLiftPid, 2000);
+	while(true){
+		if(isNewPress(btn7u)){
+			lcdSetText(uart1, 1, "Start");
+			startTask(topLiftPid);
+		}
+		else if(isNewPress(btn7d)){
+			lcdSetText(uart1, 1, "Kill");
+			killTask(topLiftPid);
+			mset(topLift, 0, 127);
+		}
+		else if(isNewPress(btn7l)){
+			lcdSetText(uart1, 1, "Pause");
+			pauseTask(topLiftPid);
+			mset(topLift, 0, 127);
+		}
+		else if(isNewPress(btn7r)){
+			lcdSetText(uart1, 1, "Resume");
+			resumeTask(topLiftPid);
+		}
+		delay(20);
+	}
 }
 
 // void liftControl(void * ignore){

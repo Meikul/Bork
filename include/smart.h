@@ -35,7 +35,9 @@ void smartGrabFront(int speed);
 
 void smartGrabBack(int speed);
 
-void lineUp(int speed);
+void lineUpBlind(int speed);
+
+void lineUp(double feet);
 
 void stopOnLine(double feet);
 

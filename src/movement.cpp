@@ -219,7 +219,7 @@ int getAccel(){
 }
 
 void topLiftSet(int power){
-  mset(topLift, -power, 30);
+  mset(topLift, power, 30);
 }
 
 void topLiftSetRamp(int power, int slew){
@@ -240,4 +240,12 @@ int getTl(){
 
 int getBl(){
   return analogRead(blPot);
+}
+
+int encGetLeft(){
+  return encoderGet(leftEnc);
+}
+
+int encGetRight(){
+  return encoderGet(rightEnc);
 }

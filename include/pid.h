@@ -139,5 +139,10 @@ void resumeTask(PID pid);
  */
 void killTask(PID pid);
 
+/**
+ * Frees memory used by pid
+ * @param pid controller
+ */
+void deletePid(PID pid);
 
 #endif

@@ -42,6 +42,8 @@ void topLiftSet(int power);
 void botLiftSet(int power);
 int getTl();
 int getBl();
+int encGetLeft();
+int encGetRight();
 
 
 #endif

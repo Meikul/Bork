@@ -497,10 +497,10 @@ void stopOnLineBlind(int speed, int slew){
 void lineUp(double feet){
   void* feetPtr = &feet;
   TaskHandle driveTask = taskCreate(asyncDriveDist, TASK_DEFAULT_STACK_SIZE, feetPtr, TASK_PRIORITY_DEFAULT);
-  while(isOverLine() && isRunningDriveTask){
+  while(!isOverLine() && taskGetState(driveTask) != TASK_DEAD){
     delay(20);
   }
-  if(isRunningDriveTask){
+  if(taskGetState(driveTask) != TASK_DEAD){
     taskDelete(driveTask);
     isRunningDriveTask = false;
     int timeOut = 0;
@@ -512,13 +512,38 @@ void lineUp(double feet){
   }
   if(isOverLine()){
     if(isOverLine(lineLeft) && !isOverLine(lineRight)){
+      encoderReset(leftEnc);
+      PID holdLeft = initPid(1.0, 0, 0.7, encGetLeft, driveSetLeft, 0);
+      startTask(holdLeft);
       while (!isOverLine(lineRight)) {
-        if(feet < 0) driveSet(0, -40);
+        driveSetRight(-70);
+        delay(20);
       }
+      PID holdRight = initPid(1.0, 0, 0.7, encGetRight, driveSetRight, 0);
+      encoderReset(rightEnc);
+      startTask(holdRight);
+      delay(1000);
+      deletePid(holdRight);
+      deletePid(holdLeft);
     }
     else if(!isOverLine(lineLeft) && isOverLine(lineRight)){
+      encoderReset(rightEnc);
+      PID holdRight = initPid(1.0, 0, 0.7, encGetRight, driveSetRight, 0);
+      startTask(holdRight);
+      while (!isOverLine(lineLeft)) {
+        driveSetLeft(-70);
+        delay(20);
+      }
+      PID holdLeft = initPid(1.0, 0, 0.7, encGetLeft, driveSetLeft, 0);
+      encoderReset(leftEnc);
+      startTask(holdLeft);
+      delay(1000);
+      deletePid(holdLeft);
+      deletePid(holdRight);
     }
   }
+  // driveDist(0, 's');
+  driveStop();
 }
 
 void driveToLine(int speed){
@@ -630,32 +655,46 @@ void leftHoldTask(void* argsPtr){
   }
 }
 
-void lineUp(int speed){
-  while(!isOverLine()){
+void lineUpBlind(int speed){
+  int timeout = 0;
+  while(!isOverLine() && timeout < 150){
     driveSet(speed, speed);
+    timeout++;
     delay(20);
   }
-  TaskHandle leftTask;
-  TaskHandle rightTask;
-  if(isOverLine(lineLeft)){
-    leftTask = driveHoldLeft();
-    while(!isOverLine(lineRight)){
-      delay(20);
+  if(isOverLine()){
+    if(isOverLine(lineLeft) && !isOverLine(lineRight)){
+      encoderReset(leftEnc);
+      PID holdLeft = initPid(1.0, 0, 0.7, encGetLeft, driveSetLeft, 0);
+      startTask(holdLeft);
+      while (!isOverLine(lineRight)) {
+        // driveSetRight(-70);
+        delay(20);
+      }
+      PID holdRight = initPid(1.0, 0, 0.7, encGetRight, driveSetRight, 0);
+      encoderReset(rightEnc);
+      startTask(holdRight);
+      delay(1000);
+      deletePid(holdRight);
+      deletePid(holdLeft);
     }
-    rightTask = driveHoldRight();
-  }
-  else {
-    rightTask = driveHoldRight();
-    while(!isOverLine(lineLeft)){
-      delay(20);
+    else if(!isOverLine(lineLeft) && isOverLine(lineRight)){
+      encoderReset(rightEnc);
+      PID holdRight = initPid(1.0, 0, 0.7, encGetRight, driveSetRight, 0);
+      startTask(holdRight);
+      while (!isOverLine(lineLeft)) {
+        // driveSetLeft(-70);
+        delay(20);
+      }
+      PID holdLeft = initPid(1.0, 0, 0.7, encGetLeft, driveSetLeft, 0);
+      encoderReset(leftEnc);
+      startTask(holdLeft);
+      delay(1000);
+      deletePid(holdLeft);
+      deletePid(holdRight);
     }
-    leftTask = driveHoldLeft();
   }
-  while(!leftHoldDone || !rightHoldDone){
-    delay(40);
-  }
-  taskDelete(leftTask);
-  taskDelete(rightTask);
+  // driveDist(0, 's');
   driveStop();
 }
 //
