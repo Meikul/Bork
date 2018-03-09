@@ -28,12 +28,14 @@ void operatorControl() {
 		if(abs(lStick) < 10) lStick = 0;
 		driveSet(lStick, rStick);
 
+		if(isNewPress(btn8u)) digitalWrite(claw, !digitalRead(claw));
+
 		// Grab
-		if(isNewPress(btn8u)){
-			frontGrabSet(!frontGrabGet());
-			gateSet(false);
-			watchingFront = false;
-		}
+		// if(isNewPress(btn8u)){
+		// 	frontGrabSet(!frontGrabGet());
+		// 	gateSet(false);
+		// 	watchingFront = false;
+		// }
 		// if(isNewPress(btn8d)){
 		// 	backGrabSet(!backGrabGet());
 		// 	watchingBack = false;

@@ -48,8 +48,8 @@ void firstBase(){
   driveDist(-1.75);
   delay(300);
   smartGrabBack(-60);
-  driveWait(-0.06, -60);
-  driveTurnDeg(-64-getGyro());
+  // driveWait(-0.06, -60);
+  driveTurnDeg(-64-getGyro(), 120, 120);
 }
 
 void cornerLaunch(){
@@ -71,19 +71,20 @@ void cornerLaunch(){
   delay(200);
   punchSet(false);
   frontGrabSet(false);
-  driveTime(350, -70);
+  driveWait(-0.3, -90);
   backGrabSet(false);
   driveWait(-0.25, -120);
   smartGrabFront(-60);
-  delay(200);
   digitalWrite(claw, true);
+  delay(200);
   driveToLine(100);
   driveWait(0.35, 100);
   punchSet(true);
-  driveTime(200, -60);
+  // driveTime(200, -60);
+  lineUp(-1.4);
   punchSet(false);
   frontGrabSet(false);
-  lineUp(-1.4);
+  // lineUp(-1.4);
 }
 
 void firstCorner(){
@@ -124,10 +125,9 @@ void firstCorner(){
   driveSetImm(70, 70);
   driveDist(1, 10, 's');
   driveTurnDeg(-45-getGyro(), 127, 30);
-  driveWait(0.25, 127);
+  driveWait(0.2, 127);
   punchSet(true);
-  driveTime(400, -70);
-  driveWait(-0.5, -100);
+  driveWait(-0.7, -100);
   punchSet(false);
   frontGrabSet(false);
 }
@@ -138,14 +138,15 @@ void firstTraverse(){
   while(!isOverBase(frontLight)){
     driveSet(-60, -60);
   }
-  driveWait(-0.3, -60, -60);
+  driveWait(-0.5, -60, -60);
   gateSet(true);
+  delay(20);
   smartGrabFront(70);
   driveStop();
   delay(200);
   driveTurnDeg(-getGyro());
   resetGyro();
-  driveWait(-0.3, -110, -110);
+  driveWait(-0.4, -110, -110);
   driveSetImm(-30, -30);
   smartGrabBack(-30);
   driveStop();
@@ -163,7 +164,7 @@ void secondCorner(){
     wallDist = getProx();
     delay(20);
   }
-  const double offset = 9;
+  const double offset = 10;
   double curHypo = sqrt(2 * (wallDist * wallDist));
   double dist = (curHypo - offset) / 12.0;
   frontGrabSet(false);
@@ -174,31 +175,33 @@ void secondCorner(){
   driveDist(-dist, 's');
   driveTurnDeg(45-getGyro());
   resetGyro();
-  driveDist(-3.75);
-  smartGrabFront(-70);
+  driveDist(-4.3);
   driveTurnDeg(-getGyro());
   resetGyro();
-  for(int counts=0; counts < 5;){
+  smartGrabFront(-60);
+  driveTurnDeg(-getGyro());
+  resetGyro();
+  for(int counts=0; counts < 4;){
     if(isOverLine(lineLeft)) counts++;
     else counts = 0;
     driveSet(127, 127);
     delay(20);
   }
-  for(int counts=0; counts < 5;){
+  for(int counts=0; counts < 4;){
     if(!isOverLine()) counts++;
     else counts = 0;
     driveSet(127, 127);
     delay(20);
   }
   driveToLine(127);
-  driveWait(1, 127);
+  driveWait(1.25, 127);
   driveSetImm(70, 70);
   driveDist(1, 10, 's');
   driveTurnDeg(45-getGyro(), 30, 127);
-  driveWait(0.7, 127);
+  driveWait(0.3, 90);
   punchSet(true);
-  driveTime(400, -60);
-  driveWait(-0.5, -100);
+  // driveTime(400, -60);
+  driveWait(-0.4, -100);
   lineUp(-1.4);
   punchSet(false);
   frontGrabSet(false);
@@ -217,20 +220,21 @@ void dejaVu(){
     driveTurnDeg(-getGyro());
     resetGyro();
   }
-  driveDist(-2.1, 15, 's');
-  driveTurnDeg(-68-getGyro());
+  driveDist(-2.5, 15, 's');
+  driveTurnDeg(-72-getGyro());
   resetGyro();
-  driveWait(-1.5, -90);
+  driveWait(-1.4, -90);
   smartGrabBack(-60);
-  driveTurnDeg(-9-getGyro(), 120, 30);
+  // driveTurnDeg(-9-getGyro(), 120, 30);
+  driveTurnDeg(-12-getGyro());
   resetGyro();
-  for(int counts=0; counts < 5;){
-    if(isOverLine(lineLeft)) counts++;
+  for(int counts=0; counts < 4;){
+    if(isOverLine()) counts++;
     else counts = 0;
     driveSet(110, 110);
     delay(10);
   }
-  for(int counts=0; counts < 5;){
+  for(int counts=0; counts < 4;){
     if(!isOverLine()) counts++;
     else counts = 0;
     driveSet(110, 110);
