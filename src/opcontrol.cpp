@@ -19,8 +19,7 @@ void operatorControl() {
 	bool watchingBack = false;
 	bool watchingEnc = false;
 	bool hasPunched = false;
-	// TaskHandle liftTask = taskCreate(liftControl);
-	TaskHandle liftTask = taskCreate(liftControl, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+	TaskHandle liftTask = taskCreate(liftControl);
 	while (1) {
 		// Drive
 		int rStick = joystickGetAnalog(1, 2);
@@ -115,10 +114,6 @@ void operatorControl() {
 		}
 		else if(!isPressed(btn5u)){
 			if(isPressed(btn5d)){
-				// if(digitalRead(launchSwitch)){
-				// 	punchSet(true);
-				// 	hasPunched = true;
-				// }
 				if(isOverLine()){
 					encoderReset(leftEnc);
 					while(encoderGet(leftEnc) < launchDelay && isPressed(btn5d)){
@@ -141,9 +136,9 @@ void operatorControl() {
 			}
 		}
 
-		if(isPressed(btn7l)){
-			// autonomous();
-		}
+		// if(isPressed(btn7l)){
+		// 	firstBase();
+		// }
 		// else if(isPressed(btn7r)){
 		// 	cornerLaunch();
 		// }
@@ -156,8 +151,11 @@ void operatorControl() {
 		// else if(isPressed(btn8l)){
 		// 	secondCorner();
 		// }
+		// else if(isPressed(btn8d)){
+		// 	dejaVu();
+		// 	mwuah();
+		// }
 
-		// if(isNewPress(btn7d)) taskDelete(liftTask);
 		// lcdControl(NULL);
 
 		delay(20);
@@ -165,26 +163,85 @@ void operatorControl() {
 	// taskDelete(lcdMenu);
 }
 
-void liftControl(void * ignore){
-	PID topLiftPid = initPid(0.15, 0.0, 0.0, getTl(), getTl());
-	PID botLiftPid = initPid(0.4, 0.0, 0.0, getBl(), getBl());
-	while(true){
-		if(isPressed(btn7l)){
-			topLiftSet(0);
-			botLiftSet(0);
-			setTarget(topLiftPid, getTl());
-			setTarget(botLiftPid, getBl());
-			// lcdPrint(uart1, 1, "%d", getTarget(topLiftPid));
-		}
-		else{
-			int tlPwr = calculatePid(topLiftPid, getTl());
-			int blPwr = calculatePid(botLiftPid, getBl());
-			lcdPrint(uart1, 1, "%d", analogRead(blPot));
-			// lcdPrint(uart1, 1, "%d", getTarget(topLiftPid));
-			botLiftSet(blPwr);
-			topLiftSet(tlPwr);
-			// TODO check with gains that pointer is calculating on same struct
-		}
-		delay(20);
-	}
-}
+// void liftControl(void * ignore){
+	// PID topLiftPid = initPid(0.12, 0.0, 0.16, getTl, topLiftSet, getTl());
+	// PID botLiftPid = initPid(0.3, 0.0, 0.3, getBl, botLiftSet, getBl());
+	// startTask(topLiftPid);
+	// startTask(botLiftPid);
+	// int state = 0;
+	// // 3296 1850
+	// // 364 1163
+	// int at = 400;
+	// int ab = 1163;
+	// int bt = 3296;
+	// int bb = 1850;
+	// while(true){
+	// 	lcdPrint(uart1, 1, "%d", state);
+	// 	switch (state) {
+	// 		case 0: // Nothing
+	// 			pauseTask(topLiftPid);
+	// 			pauseTask(botLiftPid);
+	// 			topLiftSet(0);
+	// 			botLiftSet(0);
+	// 			break;
+	// 		case 1: // Recording A
+	// 			pauseTask(topLiftPid);
+	// 			pauseTask(botLiftPid);
+	// 			topLiftSet(0);
+	// 			botLiftSet(0);
+	// 			at = getTl();
+	// 			ab = getBl();
+	// 			break;
+	// 		case 2: // Recording B
+	// 			pauseTask(topLiftPid);
+	// 			pauseTask(botLiftPid);
+	// 			topLiftSet(0);
+	// 			botLiftSet(0);
+	// 			bt = getTl();
+	// 			bb = getBl();
+	// 			break;
+	// 		case 3: // Seeking A
+	// 			resumeTask(topLiftPid);
+	// 			resumeTask(botLiftPid);
+	// 			setTarget(topLiftPid, at);
+	// 			setTarget(botLiftPid, ab);
+	// 			break;
+	// 		case 4: // Seeking B
+	// 			resumeTask(topLiftPid);
+	// 			resumeTask(botLiftPid);
+	// 			setTarget(topLiftPid, bt);
+	// 			setTarget(botLiftPid, bb);
+	// 			break;
+	// 		default:
+	// 			state = 0;
+	// 	}
+	// 	if(isPressed(btn7l)) state = 1;
+	// 	else if(isPressed(btn7r)) state = 3;
+	// 	else if(isPressed(btn8l)) state = 2;
+	// 	else if(isPressed(btn8r)) state = 4;
+	// 	else if(isPressed(btn7d)) state = 0;
+	// 	else if(isPressed(btn8d)){
+	// 		state = 0;
+	// 		killTask(topLiftPid);
+	// 		killTask(botLiftPid);
+	// 	}
+	// 	else if(isPressed(btn8u)){
+	// 		state = 0;
+	// 		startTask(topLiftPid);
+	// 		startTask(botLiftPid);
+	// 	}
+		// if(isPressed(btn7l)){
+		// 	topLiftSet(0);
+		// 	botLiftSet(0);
+		// 	setTarget(topLiftPid, getTl());
+		// 	setTarget(botLiftPid, getBl());
+		// }
+		// else{
+		// 	int tlPwr = calculatePid(topLiftPid, getTl());
+		// 	int blPwr = calculatePid(botLiftPid, getBl());
+		// 	botLiftSet(blPwr);
+		// 	topLiftSet(tlPwr);
+		// }
+	// 	delay(20);
+	// }
+// }

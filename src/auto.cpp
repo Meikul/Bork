@@ -84,7 +84,7 @@ void cornerLaunch(){
   punchSet(false);
   frontGrabSet(false);
   driveTime(300, 60);
-  stopOnLine(-0.6);
+  stopOnLineBlind(-90);
 }
 
 void firstCorner(){

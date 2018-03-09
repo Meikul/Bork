@@ -406,7 +406,7 @@ void smartGrabFront(int power){
   power = rectify(power);
   bool done = false;
   int timeOut = 0;
-  while(!done && isMoving() && timeOut < 100){
+  while(!done && timeOut < 100){
     driveSet(power, power);
     delay(20);
     if(isOverBase(frontLight)) {

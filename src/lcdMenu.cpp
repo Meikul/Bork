@@ -179,10 +179,14 @@ void sensorView(){
       if(isNewPress(lcdMid)) sysState = 0;
       break;
     case 0:
+      lcdPrint(uart1, 1, "Top %d", getTl());
+      lcdPrint(uart1, 2, "Bot %d", getBl());
+      break;
+    case 1:
       lcdPrint(uart1, 1, "Line Readers");
       lcdPrint(uart1, 2, "L %d R %d", analogRead(lineLeft), analogRead(lineRight));
       break;
-    case 1:
+    case 2:
       lcdPrint(uart1, 2, "Gyro %d", getGyro());
       if(isPressed(lcdMid)) resetGyro();
       if(isNewPress(btn7l)){
@@ -194,28 +198,28 @@ void sensorView(){
       if(isPressed(btn8r)) driveTurnDeg(90);
       if(isPressed(btn7r)) driveTurnDeg(180);
       break;
-    case 2:
+    case 3:
       lcdPrint(uart1, 2, "L %d R %d", encoderGet(leftEnc), encoderGet(rightEnc));
       if(isPressed(lcdMid)){
         encoderReset(leftEnc);
         encoderReset(rightEnc);
       }
       break;
-    case 3:
+    case 4:
       lcdPrint(uart1, 2, "T %d Ft %f", encoderGet(leftEnc), ticksToFeetLeft(encoderGet(leftEnc)));
       if(isPressed(lcdMid)){
         encoderReset(leftEnc);
         encoderReset(rightEnc);
       }
       break;
-    case 4:
+    case 5:
       lcdPrint(uart1, 2, "T %d Ft %f", encoderGet(rightEnc), ticksToFeetLeft(encoderGet(rightEnc)));
       if(isPressed(lcdMid)){
         encoderReset(leftEnc);
         encoderReset(rightEnc);
       }
       break;
-    case 5:
+    case 6:
       int acc;
       acc = getAccel();
       lcdPrint(uart1, 2, "C %d M %d", acc, accMax);

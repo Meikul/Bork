@@ -1,5 +1,4 @@
 #include "pid.h"
-#include "main.h"
 
 struct pidst{
   double kp;
@@ -13,7 +12,9 @@ struct pidst{
   unsigned long lastTime;
   unsigned int maxSpeed;
   unsigned char arg;
-  IntFunction input;
+  InputFunction input;
+  OutputFunction output;
+  TaskHandle task;
 };
 
 int rectify(int val, int lim){
@@ -28,60 +29,69 @@ PID initPid(double kp, double ki, double kd, int process, int initTarget){
   pid->ki = ki;
   pid->kd = kd;
   pid->integ = 0;
-  pid->outerIntegLimit = 0;
-  pid->innerIntegLimit = 0;
+  pid->outerIntegLimit = 200;
+  pid->innerIntegLimit = 10;
   pid->lastInput = process;
   pid->lastTime = millis();
   pid->maxSpeed = 127;
   pid->target = initTarget;
   pid->input = NULL;
+  pid->output = NULL;
+  pid->task = NULL;
   calculatePid(pid, process);
   return pid;
 }
 
-PID initPid(double kp, double ki, double kd, IntFunction input, int initTarget){
+PID initPid(double kp, double ki, double kd, InputFunction input, int initTarget){
   PID pidptr = initPid(kp, ki, kd, input(), initTarget);
-  pidst* pid = (pidst*) pidptr;
+  pidst* pid = (pidst*)pidptr;
   pid->input = input;
   calculatePid(pid);
   return pid;
 }
 
-void setInputFunction(PID pidptr, IntFunction input){
-  pidst* pid = (pidst*) pidptr;
-  pid->input = input;
+PID initPid(double kp, double ki, double kd, InputFunction input, OutputFunction output, int initTarget){
+  PID pidptr = initPid(kp, ki, kd, input, initTarget);
+  pidst* pid = (pidst*)pidptr;
+  pid->output = output;
+  calculatePid(pid);
+  return pid;
 }
 
 void setGains(PID pidptr, double kp, double ki, double kd){
-  pidst* pid = (pidst*) pidptr;
+  pidst* pid = (pidst*)pidptr;
   pid->kp = kp;
   pid->ki = ki;
   pid->kd = kd;
 }
 
+void setIntegLimits(PID pidptr, int innerLimit, int outerLimit){
+  pidst* pid = (pidst*)pidptr;
+  pid->innerIntegLimit = abs(innerLimit);
+  pid->outerIntegLimit = abs(outerLimit);
+}
+
 void setMaxSpeed(PID pidptr, int val){
-  pidst* pid = (pidst*) pidptr;
+  pidst* pid = (pidst*)pidptr;
   val = rectify(val, 127);
   pid->maxSpeed = abs(val);
 }
 
 int getTarget(PID pidptr){
-  pidst* pid = (pidst*) pidptr;
+  pidst* pid = (pidst*)pidptr;
   return pid->target;
 }
 
 void setTarget(PID pidptr, int val){
-  pidst* pid = (pidst*) pidptr;
+  pidst* pid = (pidst*)pidptr;
   pid->target = val;
-  lcdSetText(uart1, 1, "Target");
-  lcdPrint(uart1, 2, "%d", val);
 }
 
 int calculatePid(PID pidptr, int process){
-  pidst* pid = (pidst*) pidptr;
+  pidst* pid = (pidst*)pidptr;
 
   int error = pid->target - process;
-  double deltaTime = (millis() - pid->lastTime)/1000.0;
+  double deltaTime = (millis() - pid->lastTime)/100.0;
   unsigned int absError = abs(error);
   unsigned int initInteg = pid->integ;
 
@@ -96,7 +106,7 @@ int calculatePid(PID pidptr, int process){
   else pid->integ = 0;
 
 
-  int pwr = (error * pid->kp) + (pid->integ) + (deltaInput * pid->kd);
+  int pwr = (error * pid->kp) + (pid->integ) - (deltaInput * pid->kd);
 
   pwr = rectify(pwr, pid->maxSpeed);
 
@@ -112,8 +122,72 @@ int calculatePid(PID pidptr, int process){
 }
 
 int calculatePid(PID pidptr){
-  pidst* pid = (pidst*) pidptr;
+  pidst* pid = (pidst*)pidptr;
   int out = 0;
-  if(pid->input != NULL) out = calculatePid(pidptr, pid->input());
+  if(pid->input != NULL) out = calculatePid(pid, pid->input());
   return out;
+}
+
+void taskLoop(void* pidptr){
+  pidst* pid = (pidst*) pidptr;
+  while(true){
+    int val = calculatePid(pid);
+    pid->output(val);
+    delay(20);
+  }
+}
+
+void startTask(PID pidptr, InputFunction input, OutputFunction output){
+  pidst* pid = (pidst*)pidptr;
+  pid->input = input;
+  pid->output = output;
+  startTask(pidptr);
+}
+
+void startTask(PID pidptr, OutputFunction output){
+  pidst* pid = (pidst*)pidptr;
+  pid->output = output;
+  startTask(pidptr);
+}
+
+void startTask(PID pidptr){
+  pidst* pid = (pidst*)pidptr;
+  unsigned int state = taskGetState(pid->task);
+  if(state == TASK_DEAD){
+    pid->task = taskCreate(taskLoop, TASK_DEFAULT_STACK_SIZE, pidptr, TASK_PRIORITY_DEFAULT);
+  }
+  else if(state == TASK_SUSPENDED){
+    taskResume(pid->task);
+  }
+}
+
+void setInputFunction(PID pidptr, InputFunction input){
+  pidst* pid = (pidst*)pidptr;
+  pid->input = input;
+}
+
+void setOutputFunction(PID pidptr, OutputFunction output){
+  pidst* pid = (pidst*)pidptr;
+  pid->output = output;
+}
+
+void pauseTask(PID pidptr){
+  pidst* pid = (pidst*)pidptr;
+  unsigned int state = taskGetState(pid->task);
+  if(state != TASK_DEAD && state != TASK_SUSPENDED){
+    taskSuspend(pid->task);
+  }
+}
+
+void resumeTask(PID pidptr){
+  pidst* pid = (pidst*)pidptr;
+  if(taskGetState(pid->task) == TASK_SUSPENDED) taskResume(pid->task);
+}
+
+void killTask(PID pidptr){
+  pidst* pid = (pidst*)pidptr;
+  if(taskGetState(pid->task) != TASK_DEAD){
+    taskDelete(pid->task);
+    pid->task = NULL;
+  }
 }
